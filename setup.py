@@ -15,7 +15,6 @@ requirements = [
     "tqdm",
     "fire",
     "requests",
-    "torrentp"
 ]
 
 setup(
