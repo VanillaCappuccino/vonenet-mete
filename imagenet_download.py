@@ -23,7 +23,7 @@ if not os.path.exists(f"{FLAGS.torrent_path}/train.torrent"):
     trainee = requests.get(train_link)
     open(f"{FLAGS.torrent_path}/train.torrent", "wb").write(trainee.content)
 
-if not os.path.exists(f"{FLAGS.torrent_path}/test.torrent"):
+if not os.path.exists(f"{FLAGS.torrent_path}/val.torrent"):
     valee = requests.get(val_link)
     open(f"{FLAGS.torrent_path}/val.torrent", "wb").write(valee.content)
 
