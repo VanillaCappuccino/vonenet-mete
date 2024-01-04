@@ -1,4 +1,3 @@
-
 import os, argparse, time, subprocess, io, shlex, pickle, pprint
 import pandas as pd
 import numpy as np
@@ -16,6 +15,8 @@ parser.add_argument('-restore_epoch', '--restore_epoch', default=0, type=int,
 parser.add_argument('-restore_path', '--restore_path', default=None, type=str,
                     help='path of folder containing specific epoch file for restoring model training')
 
+parser.add_argument("--barebones", default = False, type = bool, help = "whether the training process should run on the back-end only.")
+
 ## Training parameters
 parser.add_argument('--ngpus', default=0, type=int,
                     help='number of GPUs to use; 0 if you want to run on CPU')
@@ -25,7 +26,7 @@ parser.add_argument('--epochs', default=70, type=int,
                     help='number of total epochs to run')
 parser.add_argument('--batch_size', default=256, type=int,
                     help='mini-batch size')
-parser.add_argument('--optimizer', choices=['stepLR', 'plateauLR'], default='stepLR',
+parser.add_argument('--optimizer', choices=['stepLR', 'plateauLR', 'adam'], default='stepLR',
                     help='Optimizer')
 parser.add_argument('--lr', '--learning_rate', default=.1, type=float,
                     help='initial learning rate')
@@ -113,7 +114,7 @@ import torch
 import torch.nn as nn
 import torch.utils.model_zoo
 import torchvision
-from vonenet import get_model
+from vonenet import get_model, barebones_model
 
 torch.manual_seed(FLAGS.torch_seed)
 
@@ -137,7 +138,11 @@ elif FLAGS.normalization == 'imagenet':
 def load_model():
     map_location = None if FLAGS.ngpus > 0 else 'cpu'
     print('Getting VOneNet')
-    model = get_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
+
+    if FLAGS.barebones:
+        model = barebones_model(model_arch=FLAGS.model_arch)
+    else:
+        model = get_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
                       visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
                       sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
                       gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
@@ -270,14 +275,23 @@ class ImageNetTrain(object):
         self.name = 'train'
         self.model = model
         self.data_loader = self.data()
-        self.optimizer = torch.optim.SGD(self.model.parameters(), FLAGS.lr, momentum=FLAGS.momentum,
-                                         weight_decay=FLAGS.weight_decay)
-        if FLAGS.optimizer == 'stepLR':
-            self.lr = torch.optim.lr_scheduler.StepLR(self.optimizer, gamma=FLAGS.step_factor,
-                                                      step_size=FLAGS.step_size)
-        elif FLAGS.optimizer == 'plateauLR':
-            self.lr = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, factor=FLAGS.step_factor,
-                                                                 patience=FLAGS.step_size-1, threshold=0.01)
+
+        if FLAGS.optimizer != "adam":
+            self.optimizer = torch.optim.SGD(self.model.parameters(), FLAGS.lr, momentum=FLAGS.momentum,
+                                            weight_decay=FLAGS.weight_decay)
+            if FLAGS.optimizer == 'stepLR':
+                self.lr = torch.optim.lr_scheduler.StepLR(self.optimizer, gamma=FLAGS.step_factor,
+                                                        step_size=FLAGS.step_size)
+            elif FLAGS.optimizer == 'plateauLR':
+                self.lr = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, factor=FLAGS.step_factor,
+                                                                    patience=FLAGS.step_size-1, threshold=0.01)
+
+            
+        else:
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=FLAGS.lr) 
+
+
+
         self.loss = nn.CrossEntropyLoss()
         if FLAGS.ngpus > 0:
             self.loss = self.loss.cuda()
@@ -322,6 +336,8 @@ class ImageNetTrain(object):
         record['dur'] = time.time() - start
         return record
 
+
+# evaluation class
 
 class ImageNetVal(object):
 

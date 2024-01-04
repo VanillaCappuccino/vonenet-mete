@@ -1,4 +1,4 @@
-import torch
+import torch, torchvision
 import torch.nn as nn
 import os
 import requests
@@ -15,6 +15,19 @@ class Wrapper(Module):
     def __init__(self, model):
         super(Wrapper, self).__init__()
         self.module = model
+
+
+def barebones_model(model_arch='resnet50', pretrained=True, map_location='cpu', **kwargs):
+    """
+    Returns the back-end only.
+    """
+
+    if model_arch == "resnet50":
+        model = torchvision.models.resnet50(pretrained=True)
+    elif model_arch == "alexnet":
+        model = torchvision.models.alexnet(pretrained=True)
+
+    return model
 
 
 def get_model(model_arch='resnet50', pretrained=True, map_location='cpu', **kwargs):

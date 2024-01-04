@@ -1,4 +1,3 @@
-
 import os, argparse, time, subprocess, io, shlex
 import pandas as pd
 import tqdm
@@ -15,6 +14,8 @@ parser.add_argument('--ngpus', default=1, type=int,
                     help='number of GPUs to use; 0 if you want to run on CPU')
 parser.add_argument('--model_arch', choices=['alexnet', 'resnet50', 'resnet50_at', 'cornets'], default='resnet50',
                     help='back-end model architecture to load')
+
+parser.add_argument("--barebones", default = False, type = bool, help = "whether the training process should run on the back-end only.")
 
 FLAGS, FIRE_FLAGS = parser.parse_known_args()
 
@@ -47,13 +48,16 @@ set_gpus(FLAGS.ngpus)
 import torch
 import torch.nn as nn
 import torchvision
-from vonenet import get_model
+from vonenet import get_model, barebones_model
 
 device = torch.device("cuda" if FLAGS.ngpus > 0 else "cpu")
 
 
 def val():
-    model = get_model(model_arch=FLAGS.model_arch, pretrained=True)
+    if FLAGS.barebones:
+        model = barebones_model(model_arch=FLAGS.model_arch, pretrained=True)
+    else:
+        model = get_model(model_arch=FLAGS.model_arch, pretrained=True)
 
     if FLAGS.ngpus == 0:
         print('Running on CPU')
