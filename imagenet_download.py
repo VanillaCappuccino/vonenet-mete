@@ -31,15 +31,19 @@ if not os.path.exists(FLAGS.output_path):
     os.mkdir(FLAGS.output_path)
 
 if not os.path.exists(FLAGS.output_path + "/train"):
+    # print("Creating train path")
     os.mkdir(FLAGS.output_path + "/train")
 
 if not os.path.exists(FLAGS.output_path + "/test"):
+    # print("Creating test path")
     os.mkdir(FLAGS.output_path + "/test")
 
 if not os.path.exists(f"{FLAGS.output_path}/ILSVRC2012_img_train.tar"):
+
     torrent_file = TorrentDownloader("torrents/train.torrent", f'{FLAGS.output_path}')
     torrent_file.start_download()
 
 if not os.path.exists(f"{FLAGS.output_path}/ILSVRC2012_img_val.tar"):
+
     torrent_file = TorrentDownloader("torrents/val.torrent", f'{FLAGS.output_path}')
     torrent_file.start_download()

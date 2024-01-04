@@ -1,7 +1,6 @@
 #!/bin/bash
 #shell script for full imagenet1k download.
 
-
 python3 imagenet_download.py --output_path /homes/mh2071/datasets/imagenet --torrent_path torrents
 
 cd /homes/mh2071/datasets/imagenet
