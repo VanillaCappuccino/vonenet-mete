@@ -17,7 +17,7 @@ if not os.path.exists(FLAGS.output_path):
 for kw in ["blur", "digital", "noise", "weather"]:
 
     url = f"https://zenodo.org/records/3565846/files/{kw}.tar?download=1"
-    filepath = f"{kw}.tar"
+    filepath = f"{FLAGS.output_path}/{kw}.tar"
 
     # Streaming, so we can iterate over the response.
     response = requests.get(url, stream=True)
