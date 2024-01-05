@@ -14,23 +14,25 @@ FLAGS, FIRE_FLAGS = parser.parse_known_args()
 if not os.path.exists(FLAGS.output_path):
     os.mkdir(FLAGS.output_path)
 
-for kw in ["blur", "digital", "noise", "weather"]:
+f = open(f"{FLAGS.output_path}/test.txt", "w")
 
-    url = f"https://zenodo.org/records/3565846/files/{kw}.tar?download=1"
-    filepath = f"{FLAGS.output_path}/{kw}.tar"
+# for kw in ["blur", "digital", "noise", "weather"]:
 
-    # Streaming, so we can iterate over the response.
-    response = requests.get(url, stream=True)
+#     url = f"https://zenodo.org/records/3565846/files/{kw}.tar?download=1"
+#     filepath = f"{FLAGS.output_path}/{kw}.tar"
 
-    # Sizes in bytes.
-    total_size = int(response.headers.get("content-length", 0))
-    block_size = 1024
+#     # Streaming, so we can iterate over the response.
+#     response = requests.get(url, stream=True)
 
-    with tqdm(total=total_size, unit="B", unit_scale=True) as progress_bar:
-        with open(filepath, "wb") as file:
-            for data in response.iter_content(block_size):
-                progress_bar.update(len(data))
-                file.write(data)
+#     # Sizes in bytes.
+#     total_size = int(response.headers.get("content-length", 0))
+#     block_size = 1024
 
-    if total_size != 0 and progress_bar.n != total_size:
-        raise RuntimeError("Could not download file")
+#     with tqdm(total=total_size, unit="B", unit_scale=True) as progress_bar:
+#         with open(filepath, "wb") as file:
+#             for data in response.iter_content(block_size):
+#                 progress_bar.update(len(data))
+#                 file.write(data)
+
+#     if total_size != 0 and progress_bar.n != total_size:
+#         raise RuntimeError("Could not download file")
