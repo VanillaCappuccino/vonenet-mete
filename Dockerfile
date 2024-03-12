@@ -13,8 +13,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Keeps Python from buffering stdout and stderr to avoid situations where
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
-ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
-ENV NVIDIA_VISIBLE_DEVICES=0,1
+# ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+# ENV NVIDIA_VISIBLE_DEVICES=0,1
 
 WORKDIR /app
 

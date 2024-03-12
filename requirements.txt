@@ -6,3 +6,4 @@ scipy
 tqdm
 fire
 requests
+opencv-python
