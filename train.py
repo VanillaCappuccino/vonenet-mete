@@ -168,7 +168,6 @@ def load_model():
 
     if FLAGS.ngpus > 0 and torch.cuda.device_count() > 1:
         print('We have multiple GPUs detected')
-        model= nn.DataParallel(model)
         model = model.to(device)
     elif FLAGS.ngpus > 0 and torch.cuda.device_count() == 1:
         print('We run on GPU')
