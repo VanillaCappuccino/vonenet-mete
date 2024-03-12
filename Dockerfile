@@ -41,4 +41,4 @@ RUN python -m pip install -r requirements.txt
 EXPOSE 8000
 
 # Run the application.
-CMD bash imagenet_p_download.sh
+CMD bash vonenet.sh

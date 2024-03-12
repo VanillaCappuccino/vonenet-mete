@@ -5,7 +5,15 @@ from torch import nn
 from torch.nn import functional as F
 from .utils import gabor_kernel
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.pi = torch.acos(torch.zeros(1)).item() * 2
+
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_built():
+    device = "mps"
+    mps = True
+else:
+    device = "cpu"
 
 
 class Identity(nn.Module):
@@ -80,6 +88,7 @@ class VOneBlock(nn.Module):
         x = self.noise_f(x)
         # V1 Block output: (Batch, out_channels, H/stride, W/stride)
         x = self.output(x)
+        print("VOneBlock output: ", x.size())
         return x
 
     def gabors_f(self, x):
@@ -124,3 +133,219 @@ class VOneBlock(nn.Module):
 
     def unfix_noise(self):
         self.fixed_noise = None
+
+# def gaussian_fn(M, mu, std):
+#     n = torch.arange(0-mu, M-mu) - (M - 1.0) / 2.0
+#     sig2 = 2 * std * std
+#     w = torch.exp(-n ** 2 / sig2)
+#     return w
+
+# def gkern(kernlen=256, std=128):
+#     """Returns a 2D Gaussian kernel array."""
+#     gkern1d = gaussian_fn(kernlen, std=std) 
+#     gkern2d = torch.outer(gkern1d, gkern1d)
+#     return gkern2d
+
+def gaussianKernel(x, y, theta, v, w, rho, sigma, A):
+
+    Sigma = torch.diag(torch.Tensor([rho, sigma]))
+    mu = torch.Tensor([v,w]).to(device)
+
+    x, y = torch.meshgrid(x, y)
+
+    x_rot = x * torch.cos(theta) + y * torch.sin(theta)
+    y_rot = -x * torch.sin(theta) + y * torch.cos(theta)
+
+    pos = torch.zeros(x_rot.shape + (2,), device=device)
+    pos[:, :, 0] = x_rot
+    pos[:, :, 1] = y_rot
+
+    const = A / (2 * torch.pi * rho * sigma)
+    
+    Sigma_inv = torch.inverse(Sigma)
+
+    fac = torch.einsum('...k,kl,...l->...', pos-mu, Sigma_inv, pos-mu)
+
+    return const * torch.exp(-fac / 2)
+
+
+# def gaussianKernel(x, y, theta, v, w, rho, sigma, A):
+
+#     Sigma = np.diag([rho, sigma])
+#     mu = np.array([v,w])
+
+#     x, y = np.meshgrid(x, y)
+
+#     x_rot = x * np.cos(theta) + y * np.sin(theta)
+#     y_rot = -x * np.sin(theta) + y * np.cos(theta)
+
+#     pos = np.empty(x_rot.shape + (2,))
+#     pos[:, :, 0] = x_rot
+#     pos[:, :, 1] = y_rot
+
+#     const = A / (2 * np.pi * rho * sigma)
+    
+#     Sigma_inv = np.linalg.inv(Sigma)
+
+#     fac = np.einsum('...k,kl,...l->...', pos-mu, Sigma_inv, pos-mu)
+
+#     return const * np.exp(-fac / 2)
+
+# DIMENSIONS OF OUTPUT FROM VONEBLOCK MUST BE STORED SOMEWHERE!
+# MAP FROM PARAMETERS TO FILTER!
+
+def torchify(data):
+
+    return torch.from_numpy(data.astype(np.float32))
+    # return torch.from_numpy(data.astype(np.float32)).to(device)
+#########
+
+class DNBlock(nn.Module):
+
+    # initialise all parameters
+    # compute denominator (bias plus params of kernels all trainable?)
+    # bank size, image size
+    # compute full expression
+    # return
+
+    def __init__(self, in_size, bank_size):
+        super().__init__()
+
+        self.in_size = in_size
+        self.bank_size = bank_size
+        self.kernel = gaussianKernel
+
+        self.weights = torch.zeros((bank_size, bank_size, in_size, in_size))
+
+
+    def initialize(self):
+
+        bias = np.array([0.5])
+        self.bias = nn.Parameter(torchify(bias), requires_grad=True)
+
+        bank_size = self.bank_size
+        in_size = self.in_size
+
+        # randomise between (0, pi)
+        theta = np.random.rand(bank_size, bank_size) * np.pi
+        theta = torchify(theta)
+        self.theta = nn.Parameter(theta, requires_grad = True) 
+
+        # (25th to 75th percentiles)
+        size = in_size // 4
+        sz = np.float32(np.arange(size, 3 * size + 1))
+
+        v = np.random.choice(sz, (bank_size, bank_size))
+        v = torchify(v)
+        self.v = nn.Parameter(v, requires_grad=True)
+
+        w = np.random.choice(sz, (bank_size, bank_size))
+        w = torchify(w)
+        self.w = nn.Parameter(w, requires_grad=True)
+
+        # start from (circa 1, size/2)
+        rho = (np.random.rand(bank_size, bank_size) + 1e-2) * in_size/2
+        rho = torchify(rho)
+        self.rho = nn.Parameter(rho, requires_grad=True)
+
+        # start from (circa 1, size/2)
+        sg = (np.random.rand(bank_size, bank_size) + 1e-2) * in_size/2
+        sg = torchify(sg)
+        self.sigma = nn.Parameter(sg, requires_grad=True)
+
+        # start from 1 / banksize
+        A = 1 / bank_size * np.ones((bank_size, bank_size))
+        A = torchify(A)
+        self.A = nn.Parameter(A, requires_grad=True)
+
+
+    def computeCoefficients(self):
+
+        x = torch.arange(0, self.in_size, device=device)
+        y = torch.arange(0, self.in_size, device=device)
+
+        for i in range(self.bank_size):
+            for j in range(self.bank_size):
+                
+                theta = self.theta[i][j]
+                v = self.v[i][j]
+                w = self.w[i][j]
+                rho = self.rho[i][j]
+                sigma = self.sigma[i][j]
+                A = self.A[i][j]
+
+                self.weights[i][j] = self.kernel(x, y, theta, v, w, rho, sigma, A)
+
+    def denominator(self,x):
+
+        self.computeCoefficients()
+
+        z = x.reshape(1,*x.shape)
+        xs = torch.cat([z]*self.bank_size, 0)
+
+        out = torch.sum(torch.mul(xs, self.weights), 1)
+
+        return self.bias + out
+    
+
+    def forward(self,x):
+
+        den = self.denominator(x)
+
+        return x / den
+    
+
+
+  ##########  
+
+
+# def gaussianKernel(x, y, theta, v, w, rho, sigma, A):
+
+#     Sigma = np.diag([rho, sigma])
+#     mu = np.array([v,w])
+
+#     x, y = np.meshgrid(x, y)
+
+#     x_rot = x * np.cos(theta) + y * np.sin(theta)
+#     y_rot = -x * np.sin(theta) + y * np.cos(theta)
+
+#     pos = np.empty(x_rot.shape + (2,))
+#     pos[:, :, 0] = x_rot
+#     pos[:, :, 1] = y_rot
+
+#     const = A / (2 * np.pi * rho * sigma)
+    
+#     Sigma_inv = np.linalg.inv(Sigma)
+
+#     fac = np.einsum('...k,kl,...l->...', pos-mu, Sigma_inv, pos-mu)
+
+#     return const * np.exp(-fac / 2)
+
+# DIMENSIONS OF OUTPUT FROM VONEBLOCK MUST BE STORED SOMEWHERE!
+# MAP FROM PARAMETERS TO FILTER!
+
+class VOneBlockDN(VOneBlock):
+
+    def __init__(self, sf, theta, sigx, sigy, phase,
+                 k_exc=25, noise_mode=None, noise_scale=1, noise_level=1,
+                 simple_channels=128, complex_channels=128, ksize=25, stride=4, input_size=224):
+
+        super().__init__(sf, theta, sigx, sigy, phase,
+                 k_exc, noise_mode, noise_scale, noise_level,
+                 simple_channels, complex_channels, ksize, stride, input_size)
+
+
+        self.dn = DNBlock(in_size=64, bank_size=self.out_channels)
+        self.dn.initialize()
+
+    def forward(self, x):
+        # Gabor activations [Batch, out_channels, H/stride, W/stride]
+        x = self.gabors_f(x)
+        # Noise [Batch, out_channels, H/stride, W/stride]
+        x = self.noise_f(x)
+        # V1 Block output: (Batch, out_channels, H/stride, W/stride)
+        x = self.output(x)
+        # DN output
+        x = self.dn(x)
+
+        return x

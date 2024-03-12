@@ -15,8 +15,6 @@ parser.add_argument('-restore_epoch', '--restore_epoch', default=0, type=int,
 parser.add_argument('-restore_path', '--restore_path', default=None, type=str,
                     help='path of folder containing specific epoch file for restoring model training')
 
-parser.add_argument("--barebones", default = False, type = bool, help = "whether the training process should run on the back-end only.")
-
 ## Training parameters
 parser.add_argument('--ngpus', default=0, type=int,
                     help='number of GPUs to use; 0 if you want to run on CPU')
@@ -41,12 +39,13 @@ parser.add_argument('--weight_decay', default=1e-4, type=float,
 ## Model parameters
 parser.add_argument('--torch_seed', default=0, type=int,
                     help='seed for weights initializations and torch RNG')
-parser.add_argument('--model_arch', choices=['alexnet', 'resnet50', 'resnet50_at', 'cornets'], default='resnet50',
+parser.add_argument('--model_arch', choices=['alexnet', 'resnet18', 'resnet50', 'resnet50_at', 'cornets'], default='resnet18',
                     help='back-end model architecture to load')
 parser.add_argument('--normalization', choices=['vonenet', 'imagenet'], default='vonenet',
                     help='image normalization to apply to models')
 parser.add_argument('--visual_degrees', default=8, type=float,
                     help='Field-of-View of the model in visual degrees')
+parser.add_argument("--model_type", choices = ["barebones", "vonenet", "vonenetdn"], default = "vonenet", help = "Choice of trained model.")
 
 ## VOneBlock parameters
 # Gabor filter bank
@@ -114,16 +113,27 @@ import torch
 import torch.nn as nn
 import torch.utils.model_zoo
 import torchvision
-from vonenet import get_model, barebones_model
+from vonenet import get_model, barebones_model, get_dn_model
 
 torch.manual_seed(FLAGS.torch_seed)
 
 torch.backends.cudnn.benchmark = True
 
-if FLAGS.ngpus > 0:
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+mps = False
+
+# if FLAGS.ngpus > 0:
+#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# else:
+#     device = 'cpu'
+
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_built():
+    device = "mps"
+    mps = True
 else:
-    device = 'cpu'
+    device = "cpu"
+
 
 if FLAGS.normalization == 'vonenet':
     print('VOneNet normalization')
@@ -136,11 +146,18 @@ elif FLAGS.normalization == 'imagenet':
 
 
 def load_model():
-    map_location = None if FLAGS.ngpus > 0 else 'cpu'
+    map_location = None if FLAGS.ngpus > 0 else (device if mps else 'cpu')
     print('Getting VOneNet')
 
-    if FLAGS.barebones:
+    if FLAGS.model_type == "barebones":
         model = barebones_model(model_arch=FLAGS.model_arch)
+    elif FLAGS.model_type == "vonenetdn":
+        model = get_dn_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
+                visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
+                sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
+                gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
+                complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
+                noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc)
     else:
         model = get_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
                       visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
@@ -151,9 +168,13 @@ def load_model():
 
     if FLAGS.ngpus > 0 and torch.cuda.device_count() > 1:
         print('We have multiple GPUs detected')
+        model= nn.DataParallel(model)
         model = model.to(device)
-    elif FLAGS.ngpus > 0 and torch.cuda.device_count() is 1:
+    elif FLAGS.ngpus > 0 and torch.cuda.device_count() == 1:
         print('We run on GPU')
+        model = model.to(device)
+    elif mps:
+        print("Metal hardware acceleration")
         model = model.to(device)
     else:
         print('No GPU detected!')
@@ -319,6 +340,9 @@ class ImageNetTrain(object):
             self.lr.step(epoch=frac_epoch)
         target = target.to(device)
 
+        if mps:
+            inp = inp.to(device)
+
         output = self.model(inp)
 
         record = {}
@@ -371,6 +395,8 @@ class ImageNetVal(object):
         record = {'loss': 0, 'top1': 0, 'top5': 0}
         with torch.no_grad():
             for (inp, target) in tqdm.tqdm(self.data_loader, desc=self.name):
+                if mps:
+                    inp = inp.to(device)
                 target = target.to(device)
                 output = self.model(inp)
 

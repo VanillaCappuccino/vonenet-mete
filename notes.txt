@@ -1,0 +1,32 @@
+1. run prepare dataset in order to include tiny imagenet
+2. use dataset directory for tiny
+3. adapt to mpl
+4. ensure resnet18-224 is trained
+
+this creates the architecture with no fill then builds on top of it.
+adapting is trickier than expected.
+
+5. test run.
+
+resnet18 + vonenet
+
+19/391 [12:57<3:52:19, 37.47s/it]
+
+generally takes very long to train compared to resnet18
+
+exclude the gfb front-end, and magic happens!
+21/391 [01:00<07:08,  1.16s/it]
+
+
+GFB output:  torch.Size([256, 512, 56, 56])
+Bottleneck output:  torch.Size([256, 64, 56, 56])
+Batch size is 256, appears as though the bottleneck simply takes these and reduces down into more salient entries.
+
+Image size was normally 64x64, we've gone down to 56x56. (Why???)
+ResNet has an AdaptiveAvgPool2d at its end, which means that any size gets adaptively scaled down. Equally, transfer learning is not sensible
+unless weights specifically trained for 64x64 TIN are used. 
+
+Why are the individual images sized at 56x56?
+
+Changing from CPU to GPU makes no difference. Train times still in the same territory:
+68/391 [37:10<2:56:36, 32.81s/it]
