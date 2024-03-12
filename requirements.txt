@@ -6,4 +6,4 @@ scipy
 tqdm
 fire
 requests
-opencv-python
+opencv-python-headless
