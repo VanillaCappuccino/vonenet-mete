@@ -34,7 +34,7 @@ RUN adduser \
 COPY . .
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
-RUN python -m pip install -r requirements.txt 
+RUN python -m pip install -r reqs.txt 
 
 # # Switch to the non-privileged user to run the application.
 # USER appuser
@@ -43,4 +43,4 @@ RUN python -m pip install -r requirements.txt
 EXPOSE 8000
 
 # Run the application.
-CMD bash vonenet.sh
+CMD bash beepboop.sh
