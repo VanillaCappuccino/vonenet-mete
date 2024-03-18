@@ -162,9 +162,11 @@ def gaussianKernel(x, y, theta, v, w, rho, sigma, A):
 
     const = A / (2 * torch.pi * rho * sigma)
     
-    Sigma_inv = torch.inverse(Sigma)
+    Sigma_inv = torch.inverse(Sigma).to(device)
 
-    fac = torch.einsum('...k,kl,...l->...', pos-mu, Sigma_inv, pos-mu)
+    delta = torch.subtract(pos,mu).to(device)
+
+    fac = torch.einsum('...k,kl,...l->...', delta, Sigma_inv, delta)
 
     return const * torch.exp(-fac / 2)
 

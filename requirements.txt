@@ -1,9 +1,9 @@
-torch>=0.4.0+
-torchvision
-numpy
-pandas
-scipy
-tqdm
-fire
-requests
-opencv-python-headless
+# torch>=0.4.0+
+# torchvision
+# numpy
+# pandas
+# scipy
+# tqdm
+# fire
+# requests
+# opencv-python-headless
