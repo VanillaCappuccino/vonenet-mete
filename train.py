@@ -35,7 +35,6 @@ parser.add_argument('--step_factor', default=0.1, type=float,
 parser.add_argument('--momentum', default=.9, type=float, help='momentum')
 parser.add_argument('--weight_decay', default=1e-4, type=float,
                     help='weight decay ')
-parser.add_argument("--overwrite", "-ow", default=False, help="Overwrite epoch save directory")
 
 ## Model parameters
 parser.add_argument('--torch_seed', default=0, type=int,
@@ -122,11 +121,6 @@ torch.backends.cudnn.benchmark = True
 
 mps = False
 
-if FLAGS.overwrite:
-    overwrite = None
-else:
-    overwrite = 1
-
 # if FLAGS.ngpus > 0:
 #     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # else:
@@ -190,7 +184,7 @@ def load_model():
 
 def train(save_train_epochs=.2,  # how often save output during training
           save_val_epochs=.5,  # how often save output during validation
-          save_model_epochs=overwrite,  # how often save model weights
+          save_model_epochs=1,  # how often save model weights
           save_model_secs=720 * 10  # how often save model (in sec)
           ):
 
