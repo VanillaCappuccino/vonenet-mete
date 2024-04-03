@@ -149,7 +149,7 @@ class VOneBlock(nn.Module):
 def gaussianKernel(x, y, theta, v, w, rho, sigma, A):
 
     Sigma = torch.diag(torch.Tensor([rho, sigma]))
-    mu = torch.Tensor([v,w]).to(device)
+    mu = torch.Tensor([v,w])
 
     x, y = torch.meshgrid(x, y)
 
@@ -162,9 +162,9 @@ def gaussianKernel(x, y, theta, v, w, rho, sigma, A):
 
     const = A / (2 * torch.pi * rho * sigma)
     
-    Sigma_inv = torch.inverse(Sigma).to(device)
+    Sigma_inv = torch.inverse(Sigma)
 
-    delta = torch.subtract(pos,mu).to(device)
+    delta = torch.subtract(pos,mu)
 
     fac = torch.einsum('...k,kl,...l->...', delta, Sigma_inv, delta)
 
