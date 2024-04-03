@@ -122,7 +122,10 @@ torch.backends.cudnn.benchmark = True
 
 mps = False
 
-overwrite = FLAGS.overwrite
+if FLAGS.overwrite:
+    overwrite = None
+else:
+    overwrite = 1
 
 # if FLAGS.ngpus > 0:
 #     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -187,7 +190,7 @@ def load_model():
 
 def train(save_train_epochs=.2,  # how often save output during training
           save_val_epochs=.5,  # how often save output during validation
-          save_model_epochs=(None if overwrite else 1),  # how often save model weights
+          save_model_epochs=overwrite,  # how often save model weights
           save_model_secs=720 * 10  # how often save model (in sec)
           ):
 
