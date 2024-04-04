@@ -36,6 +36,7 @@ parser.add_argument('--momentum', default=.9, type=float, help='momentum')
 parser.add_argument('--weight_decay', default=1e-4, type=float,
                     help='weight decay ')
 parser.add_argument("--save_model_epochs", default=1, type=int, help="Overwrite or record epoch weights separately")
+parser.add_argument("--latest_only", action="store_true", help="Save each stepped epoch or only the latest corresponding to frequency")
 
 ## Model parameters
 parser.add_argument('--torch_seed', default=0, type=int,
@@ -273,8 +274,12 @@ def train(save_train_epochs=.2,  # how often save output during training
 
                 if save_model_steps is not None:
                     if global_step in save_model_steps:
-                        torch.save(ckpt_data, os.path.join(FLAGS.output_path,
-                                                           f'epoch_{epoch:02d}.pth.tar'))
+                        if FLAGS.latest_only:
+                            torch.save(ckpt_data, os.path.join(FLAGS.output_path,
+                                                        f'latest_epoch.pth.tar'))
+                        else:
+                            torch.save(ckpt_data, os.path.join(FLAGS.output_path,
+                                                            f'epoch_{epoch:02d}.pth.tar'))
 
             else:
                 if len(results) > 1:
