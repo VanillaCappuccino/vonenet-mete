@@ -106,7 +106,7 @@ for step, data in enumerate(tqdm.tqdm(train_data)):
     outputs = voneblock.forward(data[0])
 
     p1 = outputs.reshape(batch_size,-1)
-    term1 = p1.T @ p1 / batch_size
+    term1 = p1.T @ p1 / data[1].shape[0]
 
     m1 = torch.mean(p1, dim=0)
     m1.shape
