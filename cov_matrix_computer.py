@@ -66,7 +66,7 @@ voneblock = von[0]
 filters_r = voneblock.simple_conv_q0
 filters_c = voneblock.simple_conv_q1
 
-output_path = FLAGS.output_path
+output_path = FLAGS.out_path
 try:
     os.mkdir(output_path)
 except:
