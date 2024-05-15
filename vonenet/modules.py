@@ -38,7 +38,9 @@ class GFB(nn.Module):
         return F.conv2d(x, self.weight, None, self.stride, self.padding)
 
     def initialize(self, sf, theta, sigx, sigy, phase):
+        torch.manual_seed(23)
         random_channel = torch.randint(0, self.in_channels, (self.out_channels,))
+        self.random_channel = random_channel
         for i in range(self.out_channels):
             self.weight[i, random_channel[i]] = gabor_kernel(frequency=sf[i], sigma_x=sigx[i], sigma_y=sigy[i],
                                                              theta=theta[i], offset=phase[i], ks=self.kernel_size[0])
@@ -57,6 +59,7 @@ class VOneBlock(nn.Module):
         self.complex_channels = complex_channels
         self.out_channels = simple_channels + complex_channels
         self.stride = stride
+        self.ksize = ksize
         self.input_size = input_size
 
         self.sf = sf
@@ -69,8 +72,8 @@ class VOneBlock(nn.Module):
         self.set_noise_mode(noise_mode, noise_scale, noise_level)
         self.fixed_noise = None
 
-        self.simple_conv_q0 = GFB(self.in_channels, self.out_channels, ksize, stride)
-        self.simple_conv_q1 = GFB(self.in_channels, self.out_channels, ksize, stride)
+        self.simple_conv_q0 = GFB(self.in_channels, self.out_channels, self.ksize, self.stride)
+        self.simple_conv_q1 = GFB(self.in_channels, self.out_channels, self.ksize, self.stride)
         self.simple_conv_q0.initialize(sf=self.sf, theta=self.theta, sigx=self.sigx, sigy=self.sigy,
                                        phase=self.phase)
         self.simple_conv_q1.initialize(sf=self.sf, theta=self.theta, sigx=self.sigx, sigy=self.sigy,

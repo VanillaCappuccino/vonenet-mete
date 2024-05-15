@@ -1,4 +1,6 @@
 import torch
+from torch import nn
+from torch.nn import functional as F
 import torchvision
 import numpy as np
 import tqdm
@@ -59,9 +61,19 @@ elif normalization == 'imagenet':
     norm_mean = [0.485, 0.456, 0.406]
     norm_std = [0.229, 0.224, 0.225]
 
-von = VOneNet(simple_channels=simple_channels, complex_channels=complex_channels, model_arch="resnet18", k_exc=k_exc, ksize=ksize, stride = stride, image_size=image_size, visual_degrees=visual_degrees)
+von = VOneNet(simple_channels=simple_channels, complex_channels=complex_channels, model_arch="resnet18", k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees)
 
 voneblock = von[0]
+
+ksz = (ksize,ksize)
+
+voneblock.simple_conv_q0.weight = nn.Parameter(F.interpolate(voneblock.simple_conv_q0.weight, size = ksz), requires_grad = False)
+voneblock.simple_conv_q1.weight = nn.Parameter(F.interpolate(voneblock.simple_conv_q1.weight, size = ksz), requires_grad = False)
+
+voneblock.ksize = ksize
+
+voneblock.simple_conv_q0.padding = (voneblock.ksize//2, voneblock.ksize//2)
+voneblock.simple_conv_q1.padding = (voneblock.ksize//2, voneblock.ksize//2)
 
 filters_r = voneblock.simple_conv_q0
 filters_c = voneblock.simple_conv_q1
