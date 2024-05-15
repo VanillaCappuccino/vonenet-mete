@@ -4,6 +4,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from .utils import gabor_kernel
+from numba import jit
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2
 
@@ -146,17 +147,50 @@ class VOneBlock(nn.Module):
 #     gkern2d = torch.outer(gkern1d, gkern1d)
 #     return gkern2d
 
-def gaussianKernel(x, y, theta, v, w, rho, sigma, A):
+# def gaussianKernel(theta, v, w, rho, sigma, A, in_size = 50):
 
-    Sigma = torch.diag(torch.Tensor([rho, sigma]))
-    mu = torch.Tensor([v,w])
+#     Sigma = torch.diag(torch.Tensor([rho, sigma]))
+#     mu = torch.Tensor([v,w])
 
-    x, y = torch.meshgrid(x, y)
+#     x = torch.linspace(-1,1,in_size)
+#     # print(x.device)
+
+#     x, y = torch.meshgrid(x, x)
+#     # print(x.device, theta.device)
+
+#     x_rot = x * torch.cos(theta) + y * torch.sin(theta)
+#     y_rot = -x * torch.sin(theta) + y * torch.cos(theta)
+
+#     pos = torch.zeros(x_rot.shape + (2,))
+#     pos[:, :, 0] = x_rot
+#     pos[:, :, 1] = y_rot
+
+#     const = A / (2 * torch.pi * rho * sigma)
+    
+#     Sigma_inv = torch.inverse(Sigma)
+
+#     delta = torch.subtract(pos,mu)
+
+#     fac = torch.einsum('...k,kl,...l->...', delta, Sigma_inv, delta)
+
+#     return const * torch.exp(-fac / 2)
+        
+
+@torch.jit.script
+def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50):
+
+    Sigma = torch.diag(torch.hstack([rho, sigma]))
+    mu = torch.hstack([v,w])
+
+    # x = np.arange(0, in_size)
+    x = torch.linspace(-1,1,in_size)
+
+    x, y = torch.meshgrid(x, x)
 
     x_rot = x * torch.cos(theta) + y * torch.sin(theta)
     y_rot = -x * torch.sin(theta) + y * torch.cos(theta)
 
-    pos = torch.zeros(x_rot.shape + (2,), device=device)
+    pos = torch.zeros(x_rot.shape + (2,))
     pos[:, :, 0] = x_rot
     pos[:, :, 1] = y_rot
 
@@ -169,6 +203,158 @@ def gaussianKernel(x, y, theta, v, w, rho, sigma, A):
     fac = torch.einsum('...k,kl,...l->...', delta, Sigma_inv, delta)
 
     return const * torch.exp(-fac / 2)
+
+# DIMENSIONS OF OUTPUT FROM VONEBLOCK MUST BE STORED SOMEWHERE!
+# MAP FROM PARAMETERS TO FILTER!
+
+class DNBlock(nn.Module):
+
+    # initialise all parameters
+    # compute denominator (bias plus params of kernels all trainable?)
+    # bank size, image size
+    # compute full expression
+    # return
+
+    def __init__(self, in_size, bank_size, beta=1e-4):
+        super().__init__()
+
+        self.in_size = in_size
+        self.bank_size = bank_size
+        self.kernel = gaussianKernel
+
+        self.weights = torch.zeros((bank_size, bank_size, in_size, in_size))
+
+        self.beta = beta
+
+        self.initialize()
+
+
+    def initialize(self):
+
+        # 512^2 kernels. scale, two means, two variances, rotation
+        # = 6 parameters per kernel
+        params = torch.rand(self.bank_size, self.bank_size, 6)
+
+        self.params = nn.Parameter(params, requires_grad = True)
+        # enable autograd to accumulate across params
+
+
+    def computeCoefficients(self):
+
+        # NEEDS TO HAPPEN ON CPU!!!
+
+        weights = torch.zeros(self.bank_size, self.bank_size, self.in_size, self.in_size)
+
+        x = torch.linspace(-1, 1, self.in_size, device="cpu")
+        params = self.params.to("cpu")
+
+        # I STILL EXPECT THIS TO BE VERY COSTLY.
+        for i in range(self.bank_size):
+            for j in range(self.bank_size):
+                weights[i][j] = self.kernel(*params[i][j], in_size=self.in_size)
+
+        self.weights = weights.to(device)
+
+    
+    def denominator(self,x):
+
+        # neat trickery that enables weights matrix pointwise multiplication
+        # in the same fashion that the denominator sum is described
+        # in the original paper
+
+        self.computeCoefficients() # ???
+        # re-computes the kernels accn. to current state of implicit
+        # trainable parameters
+
+        expanded_images_tensor = x.unsqueeze(2)
+        result_tensor = self.weights * expanded_images_tensor
+        summed = torch.sum(result_tensor, dim=1)
+        summed = summed + self.beta
+
+        return summed
+
+    def forward(self,x):
+
+        den = self.denominator(x)
+
+        return x / den
+
+# class DNBlock(nn.Module):
+
+#     # initialise all parameters
+#     # compute denominator (bias plus params of kernels all trainable?)
+#     # bank size, image size
+#     # compute full expression
+#     # return
+
+#     def __init__(self, in_size, bank_size, beta=1e-4):
+#         super().__init__()
+
+#         self.in_size = in_size
+#         self.bank_size = bank_size
+#         self.kernel = gaussianKernel
+
+#         self.weights = torch.zeros((bank_size, bank_size, in_size, in_size))
+
+#         self.beta = beta
+
+#         self.initialize()
+
+
+#     def initialize(self):
+
+#         # 512^2 kernels. scale, two means, two variances, rotation
+#         # = 6 parameters per kernel
+#         params = torch.rand(self.bank_size, self.bank_size, 6)
+
+#         self.params = nn.Parameter(params, requires_grad = True)
+#         # print(self.params.device)
+#         # enable autograd to accumulate across params
+
+
+#     def computeCoefficients(self):
+
+#         # NEEDS TO HAPPEN ON CPU!!!
+
+#         # self.weights = torch.zeros((bank_size, bank_size, in_size, in_size)) (IN INIT)
+#         weights = torch.zeros((self.bank_size, self.bank_size, self.in_size, self.in_size))
+#         params = self.params.to("cpu")
+
+#         # x = torch.linspace(-1, 1, self.in_size, device="cpu")
+
+#         # I STILL EXPECT THIS TO BE VERY COSTLY.
+#         # print(self.params.device)
+#         for i in range(self.bank_size):
+#             for j in range(self.bank_size):
+#                 weights[i][j] = self.kernel(*params[i][j], in_size=self.in_size)
+
+#         self.weights = weights.to(device) # EXPORT TO GPU ONLY WHEN COMPUTED
+
+        
+
+#     def denominator(self,x):
+
+#         # neat trickery that enables weights matrix pointwise multiplication
+#         # in the same fashion that the denominator sum is described
+#         # in the original paper
+
+#         self.computeCoefficients()
+#         # re-computes the kernels accn. to current state of implicit
+#         # trainable parameters
+#         # how many times is this computed? -> autograd might struggle
+
+#         expanded_images_tensor = x.unsqueeze(1).expand(-1, self.bank_size, -1, -1)
+#         result_tensor = self.weights * expanded_images_tensor
+#         summed = torch.sum(result_tensor, dim=0)
+#         summed = summed + self.beta
+
+#         return summed
+
+#     def forward(self,x):
+
+#         den = self.denominator(x)
+
+#         return x / den
 
 
 # def gaussianKernel(x, y, theta, v, w, rho, sigma, A):
@@ -196,105 +382,105 @@ def gaussianKernel(x, y, theta, v, w, rho, sigma, A):
 # DIMENSIONS OF OUTPUT FROM VONEBLOCK MUST BE STORED SOMEWHERE!
 # MAP FROM PARAMETERS TO FILTER!
 
-def torchify(data):
+# def torchify(data):
 
-    return torch.from_numpy(data.astype(np.float32))
-    # return torch.from_numpy(data.astype(np.float32)).to(device)
-#########
+#     return torch.from_numpy(data.astype(np.float32))
+#     # return torch.from_numpy(data.astype(np.float32)).to(device)
+# #########
 
-class DNBlock(nn.Module):
+# class DNBlock(nn.Module):
 
-    # initialise all parameters
-    # compute denominator (bias plus params of kernels all trainable?)
-    # bank size, image size
-    # compute full expression
-    # return
+#     # initialise all parameters
+#     # compute denominator (bias plus params of kernels all trainable?)
+#     # bank size, image size
+#     # compute full expression
+#     # return
 
-    def __init__(self, in_size, bank_size):
-        super().__init__()
+#     def __init__(self, in_size, bank_size):
+#         super().__init__()
 
-        self.in_size = in_size
-        self.bank_size = bank_size
-        self.kernel = gaussianKernel
+#         self.in_size = in_size
+#         self.bank_size = bank_size
+#         self.kernel = gaussianKernel
 
-        self.weights = torch.zeros((bank_size, bank_size, in_size, in_size))
-
-
-    def initialize(self):
-
-        bias = np.array([0.5])
-        self.bias = nn.Parameter(torchify(bias), requires_grad=True)
-
-        bank_size = self.bank_size
-        in_size = self.in_size
-
-        # randomise between (0, pi)
-        theta = np.random.rand(bank_size, bank_size) * np.pi
-        theta = torchify(theta)
-        self.theta = nn.Parameter(theta, requires_grad = True) 
-
-        # (25th to 75th percentiles)
-        size = in_size // 4
-        sz = np.float32(np.arange(size, 3 * size + 1))
-
-        v = np.random.choice(sz, (bank_size, bank_size))
-        v = torchify(v)
-        self.v = nn.Parameter(v, requires_grad=True)
-
-        w = np.random.choice(sz, (bank_size, bank_size))
-        w = torchify(w)
-        self.w = nn.Parameter(w, requires_grad=True)
-
-        # start from (circa 1, size/2)
-        rho = (np.random.rand(bank_size, bank_size) + 1e-2) * in_size/2
-        rho = torchify(rho)
-        self.rho = nn.Parameter(rho, requires_grad=True)
-
-        # start from (circa 1, size/2)
-        sg = (np.random.rand(bank_size, bank_size) + 1e-2) * in_size/2
-        sg = torchify(sg)
-        self.sigma = nn.Parameter(sg, requires_grad=True)
-
-        # start from 1 / banksize
-        A = 1 / bank_size * np.ones((bank_size, bank_size))
-        A = torchify(A)
-        self.A = nn.Parameter(A, requires_grad=True)
+#         self.weights = torch.zeros((bank_size, bank_size, in_size, in_size))
 
 
-    def computeCoefficients(self):
+#     def initialize(self):
 
-        x = torch.arange(0, self.in_size, device=device)
-        y = torch.arange(0, self.in_size, device=device)
+#         bias = np.array([0.5])
+#         self.bias = nn.Parameter(torchify(bias), requires_grad=True)
 
-        for i in range(self.bank_size):
-            for j in range(self.bank_size):
+#         bank_size = self.bank_size
+#         in_size = self.in_size
+
+#         # randomise between (0, pi)
+#         theta = np.random.rand(bank_size, bank_size) * np.pi
+#         theta = torchify(theta)
+#         self.theta = nn.Parameter(theta, requires_grad = True) 
+
+#         # (25th to 75th percentiles)
+#         size = in_size // 4
+#         sz = np.float32(np.arange(size, 3 * size + 1))
+
+#         v = np.random.choice(sz, (bank_size, bank_size))
+#         v = torchify(v)
+#         self.v = nn.Parameter(v, requires_grad=True)
+
+#         w = np.random.choice(sz, (bank_size, bank_size))
+#         w = torchify(w)
+#         self.w = nn.Parameter(w, requires_grad=True)
+
+#         # start from (circa 1, size/2)
+#         rho = (np.random.rand(bank_size, bank_size) + 1e-2) * in_size/2
+#         rho = torchify(rho)
+#         self.rho = nn.Parameter(rho, requires_grad=True)
+
+#         # start from (circa 1, size/2)
+#         sg = (np.random.rand(bank_size, bank_size) + 1e-2) * in_size/2
+#         sg = torchify(sg)
+#         self.sigma = nn.Parameter(sg, requires_grad=True)
+
+#         # start from 1 / banksize
+#         A = 1 / bank_size * np.ones((bank_size, bank_size))
+#         A = torchify(A)
+#         self.A = nn.Parameter(A, requires_grad=True)
+
+
+#     def computeCoefficients(self):
+
+#         x = torch.arange(0, self.in_size, device=device)
+#         y = torch.arange(0, self.in_size, device=device)
+
+#         for i in range(self.bank_size):
+#             for j in range(self.bank_size):
                 
-                theta = self.theta[i][j]
-                v = self.v[i][j]
-                w = self.w[i][j]
-                rho = self.rho[i][j]
-                sigma = self.sigma[i][j]
-                A = self.A[i][j]
+#                 theta = self.theta[i][j]
+#                 v = self.v[i][j]
+#                 w = self.w[i][j]
+#                 rho = self.rho[i][j]
+#                 sigma = self.sigma[i][j]
+#                 A = self.A[i][j]
 
-                self.weights[i][j] = self.kernel(x, y, theta, v, w, rho, sigma, A)
+#                 self.weights[i][j] = self.kernel(x, y, theta, v, w, rho, sigma, A)
 
-    def denominator(self,x):
+#     def denominator(self,x):
 
-        self.computeCoefficients()
+#         self.computeCoefficients()
 
-        z = x.reshape(1,*x.shape)
-        xs = torch.cat([z]*self.bank_size, 0)
+#         z = x.reshape(1,*x.shape)
+#         xs = torch.cat([z]*self.bank_size, 0)
 
-        out = torch.sum(torch.mul(xs, self.weights), 1)
+#         out = torch.sum(torch.mul(xs, self.weights), 1)
 
-        return self.bias + out
+#         return self.bias + out
     
 
-    def forward(self,x):
+#     def forward(self,x):
 
-        den = self.denominator(x)
+#         den = self.denominator(x)
 
-        return x / den
+#         return x / den
     
 
 
@@ -337,7 +523,7 @@ class VOneBlockDN(VOneBlock):
                  simple_channels, complex_channels, ksize, stride, input_size)
 
 
-        self.dn = DNBlock(in_size=64, bank_size=self.out_channels)
+        self.dn = DNBlock(in_size=int(self.input_size/self.stride), bank_size=self.out_channels)
         self.dn.initialize()
 
     def forward(self, x):
