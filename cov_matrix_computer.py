@@ -98,7 +98,7 @@ def data():
 train_data = data()
 count = len(train_data)
 
-cov_dim = batch_size*32**2
+cov_dim = (simple_channels+complex_channels)*32**2
 cov_matrix = torch.zeros(cov_dim, cov_dim)
 
 for step, data in enumerate(tqdm.tqdm(train_data)):
