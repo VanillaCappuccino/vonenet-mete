@@ -4,7 +4,7 @@ from torch.nn import functional as F
 import torchvision
 import numpy as np
 import tqdm
-import seaborn as sns
+# import seaborn as sns
 import matplotlib.pyplot as plt
 import argparse
 import os, sys, argparse, time, subprocess, io, shlex, pickle, pprint
@@ -61,7 +61,15 @@ elif normalization == 'imagenet':
     norm_mean = [0.485, 0.456, 0.406]
     norm_std = [0.229, 0.224, 0.225]
 
-von = VOneNet(simple_channels=simple_channels, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees)
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_built():
+    device = "mps"
+    mps = True
+else:
+    device = "cpu"
+
+von = VOneNet(simple_channels=simple_channels, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees).to(device)
 
 voneblock = von[0]
 
@@ -111,7 +119,7 @@ train_data = data()
 count = len(train_data)
 
 cov_dim = (simple_channels+complex_channels)*32**2
-cov_matrix = torch.zeros(cov_dim, cov_dim)
+cov_matrix = torch.zeros(cov_dim, cov_dim).to(device)
 
 for step, data in enumerate(tqdm.tqdm(train_data)):
     
