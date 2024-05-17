@@ -61,7 +61,7 @@ elif normalization == 'imagenet':
     norm_mean = [0.485, 0.456, 0.406]
     norm_std = [0.229, 0.224, 0.225]
 
-von = VOneNet(simple_channels=simple_channels, complex_channels=complex_channels, model_arch="resnet18", k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees)
+von = VOneNet(simple_channels=simple_channels, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees)
 
 voneblock = von[0]
 
