@@ -69,6 +69,8 @@ elif torch.backends.mps.is_built():
 else:
     device = "cpu"
 
+print("Device: ", device)
+
 von = VOneNet(simple_channels=simple_channels, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees).to(device)
 
 voneblock = von[0]
@@ -133,6 +135,8 @@ for step, data in enumerate(tqdm.tqdm(train_data)):
     mn = torch.outer(m1, m1)
 
     cov_matrix += term1 - mn
+
+    print(outputs.device, p1.device, m1.device, mn.device, cov_matrix.device)
 
 cov_matrix /= count
 
