@@ -353,6 +353,8 @@ class ImageNetTrain(object):
         if mps:
             inp = inp.to(device)
 
+        print(target.device, inp.device)
+
         output = self.model(inp)
 
         record = {}
