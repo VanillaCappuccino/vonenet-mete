@@ -121,11 +121,13 @@ train_data = data()
 count = len(train_data)
 
 cov_dim = (simple_channels+complex_channels)*32**2
+print(cov_dim)
 cov_matrix = torch.zeros(cov_dim, cov_dim).to(device)
 
 for step, data in enumerate(tqdm.tqdm(train_data)):
     
-    outputs = voneblock.forward(data[0])
+    entry = data[0].to(device)
+    outputs = voneblock.forward(entry)
 
     p1 = outputs.reshape(-1, cov_dim)
     term1 = p1.T @ p1 / data[1].shape[0]

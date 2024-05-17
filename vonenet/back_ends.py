@@ -212,7 +212,6 @@ class ResNetBackEnd(nn.Module):
 
     def _forward_impl(self, x):
         # See note [TorchScript super()]
-        print("Bottleneck output: ", x.size())
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)

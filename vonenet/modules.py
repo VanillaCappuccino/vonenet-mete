@@ -92,7 +92,6 @@ class VOneBlock(nn.Module):
         x = self.noise_f(x)
         # V1 Block output: (Batch, out_channels, H/stride, W/stride)
         x = self.output(x)
-        print("VOneBlock output: ", x.size())
         return x
 
     def gabors_f(self, x):
