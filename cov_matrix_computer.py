@@ -132,21 +132,9 @@ for step, data in enumerate(tqdm.tqdm(train_data)):
         
         outputs = voneblock.forward(data[0].to(device))
 
-        if device == "cuda":
-
-            print(torch.cuda.mem_get_info())
-
         p1 = outputs.reshape(-1, cov_dim)
 
-        if device == "cuda":
-
-            print(torch.cuda.mem_get_info())
-
         term1 = p1.T @ p1 / data[1].shape[0]
-
-        if device == "cuda":
-
-            print(torch.cuda.mem_get_info())
 
         m1 = torch.mean(p1, dim=0)
         m1.shape
@@ -154,9 +142,8 @@ for step, data in enumerate(tqdm.tqdm(train_data)):
 
         cov_matrix += term1 - mn
 
-        torch.cuda.empty_cache()
-
-    print(outputs.device, p1.device, m1.device, mn.device, cov_matrix.device)
+        if device == "cuda":
+            torch.cuda.empty_cache()
 
 
 cov_matrix /= count
