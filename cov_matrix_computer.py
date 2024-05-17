@@ -126,7 +126,8 @@ cov_matrix = torch.zeros(cov_dim, cov_dim).to(device)
 
 for step, data in enumerate(tqdm.tqdm(train_data)):
     
-    entry = data[0].to(device)
+    entry = data[0]
+    print(entry.shape, entry.device)
     outputs = voneblock.forward(entry)
 
     p1 = outputs.reshape(-1, cov_dim)
