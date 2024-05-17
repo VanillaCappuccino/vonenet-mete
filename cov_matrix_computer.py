@@ -154,6 +154,8 @@ for step, data in enumerate(tqdm.tqdm(train_data)):
 
         cov_matrix += term1 - mn
 
+        torch.cuda.empty_cache()
+
     print(outputs.device, p1.device, m1.device, mn.device, cov_matrix.device)
 
 
