@@ -126,20 +126,22 @@ cov_matrix = torch.zeros(cov_dim, cov_dim).to(device)
 
 for step, data in enumerate(tqdm.tqdm(train_data)):
     
-    entry = data[0]
-    print(entry.shape, entry.device)
-    outputs = voneblock.forward(entry)
+    with torch.no_grad():
+        
+        outputs = voneblock.forward(data[0].to(device))
 
-    p1 = outputs.reshape(-1, cov_dim)
-    term1 = p1.T @ p1 / data[1].shape[0]
+        p1 = outputs.reshape(-1, cov_dim)
 
-    m1 = torch.mean(p1, dim=0)
-    m1.shape
-    mn = torch.outer(m1, m1)
+        term1 = p1.T @ p1 / data[1].shape[0]
 
-    cov_matrix += term1 - mn
+        m1 = torch.mean(p1, dim=0)
+        m1.shape
+        mn = torch.outer(m1, m1)
+
+        cov_matrix += term1 - mn
 
     print(outputs.device, p1.device, m1.device, mn.device, cov_matrix.device)
+
 
 cov_matrix /= count
 
