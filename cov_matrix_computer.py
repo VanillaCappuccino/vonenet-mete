@@ -36,6 +36,8 @@ parser.add_argument('--simple_channels', default=16, type=int,
                     help='number of simple channels in V1 block')
 parser.add_argument('--complex_channels', default=16, type=int,
                     help='number of complex channels in V1 block')
+parser.add_argument('--device', choices=['cpu', 'cuda'], default='cpu',
+                    help='Device to use for computation')
 
 FLAGS, FIRE_FLAGS = parser.parse_known_args()
 
@@ -61,7 +63,7 @@ elif normalization == 'imagenet':
     norm_mean = [0.485, 0.456, 0.406]
     norm_std = [0.229, 0.224, 0.225]
 
-if torch.cuda.is_available():
+if FLAGS.device == "cuda" and torch.cuda.is_available():
     device = "cuda"
 elif torch.backends.mps.is_built():
     device = "mps"
@@ -130,9 +132,21 @@ for step, data in enumerate(tqdm.tqdm(train_data)):
         
         outputs = voneblock.forward(data[0].to(device))
 
+        if device == "cuda":
+
+            print(torch.cuda.mem_get_info())
+
         p1 = outputs.reshape(-1, cov_dim)
 
+        if device == "cuda":
+
+            print(torch.cuda.mem_get_info())
+
         term1 = p1.T @ p1 / data[1].shape[0]
+
+        if device == "cuda":
+
+            print(torch.cuda.mem_get_info())
 
         m1 = torch.mean(p1, dim=0)
         m1.shape
