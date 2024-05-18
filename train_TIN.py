@@ -20,20 +20,20 @@ parser.add_argument('--ngpus', default=0, type=int,
                     help='number of GPUs to use; 0 if you want to run on CPU')
 parser.add_argument('-j', '--workers', default=20, type=int,
                     help='number of data loading workers')
-parser.add_argument('--epochs', default=70, type=int,
+parser.add_argument('--epochs', default=60, type=int,
                     help='number of total epochs to run')
-parser.add_argument('--batch_size', default=256, type=int,
+parser.add_argument('--batch_size', default=128, type=int,
                     help='mini-batch size')
-parser.add_argument('--optimizer', choices=['stepLR', 'plateauLR', 'adam'], default='stepLR',
+parser.add_argument('--optimizer', choices=['stepLR', 'plateauLR', 'adam'], default='plateauLR',
                     help='Optimizer')
 parser.add_argument('--lr', '--learning_rate', default=.1, type=float,
                     help='initial learning rate')
-parser.add_argument('--step_size', default=20, type=int,
+parser.add_argument('--step_size', default=5, type=int,
                     help='after how many epochs learning rate should be decreased by step_factor')
 parser.add_argument('--step_factor', default=0.1, type=float,
                     help='factor by which to decrease the learning rate')
 parser.add_argument('--momentum', default=.9, type=float, help='momentum')
-parser.add_argument('--weight_decay', default=1e-4, type=float,
+parser.add_argument('--weight_decay', default=5e-4, type=float,
                     help='weight decay ')
 parser.add_argument("--save_model_epochs", default=1, type=int, help="Overwrite or record epoch weights separately")
 parser.add_argument("--latest_only", action="store_true", help="Save each stepped epoch or only the latest corresponding to frequency")
