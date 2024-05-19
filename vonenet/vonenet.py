@@ -81,6 +81,8 @@ def VOneNetDN(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
 def downsampler(voneblock, ksize):
 
     ksz = (ksize,ksize)
+
+    print(f"Interpolating to: {ksz}")
     
     voneblock.simple_conv_q0.weight = nn.Parameter(F.interpolate(voneblock.simple_conv_q0.weight, size = ksz), requires_grad = False)
     voneblock.simple_conv_q1.weight = nn.Parameter(F.interpolate(voneblock.simple_conv_q1.weight, size = ksz), requires_grad = False)
