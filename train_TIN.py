@@ -144,51 +144,53 @@ else:
 
 print("Device: ", device)
 
-simchan = FLAGS.simple_channels
-comchan = FLAGS.complex_channels
-batch_size = FLAGS.batch_size
 
-cov_dir = f"{simchan}x{comchan}"
-file_dir = cov_dir + "x" + str(batch_size)
-
-print("Cov matrix directory: ", file_dir)
-
-cov_matrix = None
-filters_r = None
-filters_c = None
-
-
-if FLAGS.model_type == "vonenetdn":
-
-    print("Loading covariance structures.")
-
-    if os.path.exists(file_dir):
-        cov_matrix = torch.load(f"{file_dir}/cov_matrix.pt", map_location = device)
-        filters_r = torch.load(f"{file_dir}/real_filters.pt", map_location = device)
-        filters_c = torch.load(f"{file_dir}/imaginary_filters.pt", map_location = device)
-
-    elif os.path.exists(cov_dir):
-        cov_matrix = torch.load(f"{cov_dir}/cov_matrix.pt", map_location = device)
-        filters_r = torch.load(f"{file_dir}/real_filters.pt", map_location = device)
-        filters_c = torch.load(f"{file_dir}/imaginary_filters.pt", map_location = device)
-
-    else:
-        raise ValueError("There exist no pre-trained covariance values for this divisive normalisation configuration.")
-
-
-if FLAGS.normalization == 'vonenet':
-    print('VOneNet normalization')
-    norm_mean = [0.5, 0.5, 0.5]
-    norm_std = [0.5, 0.5, 0.5]
-elif FLAGS.normalization == 'imagenet':
-    print('Imagenet standard normalization')
-    norm_mean = [0.485, 0.456, 0.406]
-    norm_std = [0.229, 0.224, 0.225]
 
 
 def load_model():
-    map_location = None if FLAGS.ngpus > 0 else (device if mps else 'cpu')
-    print('Getting VOneNet')
+
+    simchan = FLAGS.simple_channels
+    comchan = FLAGS.complex_channels
+    batch_size = FLAGS.batch_size
+
+    cov_dir = f"{simchan}x{comchan}"
+    file_dir = cov_dir + "x" + str(batch_size)
+
+    print("Cov matrix directory: ", file_dir)
+
+    cov_matrix = None
+    filters_r = None
+    filters_c = None
+
+
+    if FLAGS.model_type == "vonenetdn":
+
+        print("Loading covariance structures.")
+
+        if os.path.exists(file_dir):
+            cov_matrix = torch.load(f"{file_dir}/cov_matrix.pt", map_location = device)
+            filters_r = torch.load(f"{file_dir}/real_filters.pt", map_location = device)
+            filters_c = torch.load(f"{file_dir}/imaginary_filters.pt", map_location = device)
+
+        elif os.path.exists(cov_dir):
+            cov_matrix = torch.load(f"{cov_dir}/cov_matrix.pt", map_location = device)
+            filters_r = torch.load(f"{file_dir}/real_filters.pt", map_location = device)
+            filters_c = torch.load(f"{file_dir}/imaginary_filters.pt", map_location = device)
+
+        else:
+            raise ValueError("There exist no pre-trained covariance values for this divisive normalisation configuration.")
+
+
+    if FLAGS.normalization == 'vonenet':
+        print('VOneNet normalization')
+        norm_mean = [0.5, 0.5, 0.5]
+        norm_std = [0.5, 0.5, 0.5]
+    elif FLAGS.normalization == 'imagenet':
+        print('Imagenet standard normalization')
+        norm_mean = [0.485, 0.456, 0.406]
+        norm_std = [0.229, 0.224, 0.225]
+        map_location = None if FLAGS.ngpus > 0 else (device if mps else 'cpu')
+        print('Getting VOneNet')
 
     if FLAGS.model_type == "barebones":
         model = barebones_model(model_arch=FLAGS.model_arch)
