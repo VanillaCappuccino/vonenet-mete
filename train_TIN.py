@@ -44,6 +44,7 @@ parser.add_argument('--weight_decay', default=5e-4, type=float,
                     help='weight decay ')
 parser.add_argument("--save_model_epochs", default=1, type=int, help="Overwrite or record epoch weights separately")
 parser.add_argument("--latest_only", action="store_true", help="Save each stepped epoch or only the latest corresponding to frequency")
+parser.add_argument("--imagenet1k_ckpt", action="store_true", help="Use ImageNet1k checkpoint from Torchvision.")
 
 ## Model parameters
 parser.add_argument('--torch_seed', default=0, type=int,
@@ -190,14 +191,14 @@ elif FLAGS.normalization == 'imagenet':
     
 map_location = None if FLAGS.ngpus > 0 else (device if mps else 'cpu')
 
-
+pretrained = FLAGS.pretrained
 
 def load_model():
 
     print('Getting VOneNet')
 
     if FLAGS.model_type == "barebones":
-        model = barebones_model(model_arch=FLAGS.model_arch, use_TIN = use_TIN)
+        model = barebones_model(model_arch=FLAGS.model_arch, use_TIN = use_TIN, imagenet_ckpt = FLAGS.imagenet_ckpt)
     elif FLAGS.model_type == "vonenetdn":
         model = get_dn_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
                 visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
@@ -212,7 +213,7 @@ def load_model():
                       sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
                       gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
                       complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
-                      noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc, use_TIN = True)
+                      noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc, use_TIN = use_TIN)
 
     if FLAGS.ngpus > 0 and torch.cuda.device_count() > 1:
         print('We have multiple GPUs detected')
