@@ -149,6 +149,7 @@ batch_size = FLAGS.batch_size
 
 cov_dir = f"{simchan}x{comchan}"
 file_dir = cov_dir + "x" + str(batch_size)
+print(file_dir)
 
 cov_matrix = None
 filters_r = None
@@ -157,6 +158,8 @@ filters_c = None
 
 
 if FLAGS.model_type == "vonenetdn":
+
+    print("Loading covariance structures.")
 
     if os.path.exists(file_dir):
         cov_matrix = torch.load(f"{file_dir}/cov_matrix.pt", map_location = device)
