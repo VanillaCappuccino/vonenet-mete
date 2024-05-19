@@ -191,14 +191,12 @@ elif FLAGS.normalization == 'imagenet':
     
 map_location = None if FLAGS.ngpus > 0 else (device if mps else 'cpu')
 
-pretrained = FLAGS.pretrained
-
 def load_model():
 
     print('Getting VOneNet')
 
     if FLAGS.model_type == "barebones":
-        model = barebones_model(model_arch=FLAGS.model_arch, use_TIN = use_TIN, imagenet_ckpt = FLAGS.imagenet_ckpt)
+        model = barebones_model(model_arch=FLAGS.model_arch, use_TIN = use_TIN, imagenet_ckpt = FLAGS.imagenet1k_ckpt)
     elif FLAGS.model_type == "vonenetdn":
         model = get_dn_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
                 visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,

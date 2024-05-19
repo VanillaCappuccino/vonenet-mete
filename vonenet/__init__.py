@@ -17,16 +17,16 @@ class Wrapper(Module):
         self.module = model
 
 
-def barebones_model(model_arch='resnet50', pretrained=True, map_location='cpu', **kwargs):
+def barebones_model(model_arch='resnet50', imagenet_ckpt=True, map_location='cpu', **kwargs):
     """
     Returns the back-end only.
     """
     if model_arch == "resnet18":
-        model = torchvision.models.resnet18(pretrained=pretrained)
+        model = torchvision.models.resnet18(pretrained=imagenet_ckpt)
     elif model_arch == "resnet50":
-        model = torchvision.models.resnet50(pretrained=pretrained)
+        model = torchvision.models.resnet50(pretrained=imagenet_ckpt)
     elif model_arch == "alexnet":
-        model = torchvision.models.alexnet(pretrained=pretrained)
+        model = torchvision.models.alexnet(pretrained=imagenet_ckpt)
 
     """
     Architectural changes as described by arXiv:2110.10645v2.
@@ -36,7 +36,7 @@ def barebones_model(model_arch='resnet50', pretrained=True, map_location='cpu', 
     if model_arch == "resnet18":
         model.conv1.stride = (1,1)
 
-    print("Architectural changes complete. Pretrained: {}".format(pretrained))
+    print("Architectural changes complete. Pretrained: {}".format(imagenet_ckpt))
 
     model = nn.DataParallel(model)
     model.to(map_location)
