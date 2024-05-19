@@ -564,7 +564,7 @@ class VOneBlockDN(VOneBlock):
     def __init__(self, sf, theta, sigx, sigy, phase,
                  k_exc=25, noise_mode=None, noise_scale=1, noise_level=1,
                  simple_channels=128, complex_channels=128, ksize=25, stride=4, input_size=224,
-                 kernel = None, filters_r = None, filters_c = None):
+                 cov_matrix = None, filters_r = None, filters_c = None):
 
         super().__init__(sf, theta, sigx, sigy, phase,
                  k_exc, noise_mode, noise_scale, noise_level,
@@ -572,7 +572,7 @@ class VOneBlockDN(VOneBlock):
 
 
         self.dn = DNBlock()
-        self.dn.initialise(kernel)
+        self.dn.initialise(cov_matrix)
 
         if filters_r:
             self.simple_conv_q0.weight = filters_r

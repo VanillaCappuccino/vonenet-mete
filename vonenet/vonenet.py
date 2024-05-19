@@ -11,7 +11,7 @@ from torch.nn import functional as F
 def VOneNetDN(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
             simple_channels=256, complex_channels=256,
             noise_mode='neuronal', noise_scale=0.35, noise_level=0.07, k_exc=25,
-            model_arch='resnet50', image_size=224, visual_degrees=8, ksize=25, stride=4, kernel = None,
+            model_arch='resnet50', image_size=224, visual_degrees=8, ksize=25, stride=4, cov_matrix = None,
             filters_r = None, filters_c = None):
 
 
@@ -37,7 +37,7 @@ def VOneNetDN(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
     vone_block = VOneBlockDN(sf=sf, theta=theta, sigx=sigx, sigy=sigy, phase=phase,
                            k_exc=k_exc, noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
                            simple_channels=simple_channels, complex_channels=complex_channels,
-                           ksize=ksize, stride=stride, input_size=image_size, kernel = kernel,
+                           ksize=ksize, stride=stride, input_size=image_size, cov_matrix = cov_matrix,
                            filters_r = filters_r, filters_c = filters_c)
 
     if model_arch:
