@@ -4,6 +4,13 @@ import numpy as np
 import tqdm
 import fire
 
+import torch
+import torch.nn as nn
+import torch.utils.model_zoo
+import torchvision
+from vonenet import get_model, barebones_model, get_dn_model
+
+
 parser = argparse.ArgumentParser(description='Tiny ImageNet Training')
 ## General parameters
 parser.add_argument('--in_path', required=True,
@@ -110,18 +117,13 @@ def set_gpus(n=2):
 
 
 if FLAGS.ngpus > 0:
+    print("Setting GPUs.")
     set_gpus(FLAGS.ngpus)
 
 # if FLAGS.overwrite:
 #     overwrite=None
 # else:
 #     overwrite=1
-
-import torch
-import torch.nn as nn
-import torch.utils.model_zoo
-import torchvision
-from vonenet import get_model, barebones_model, get_dn_model
 
 torch.manual_seed(FLAGS.torch_seed)
 
@@ -143,8 +145,6 @@ else:
     device = "cpu"
 
 print("Device: ", device)
-
-
 
 
 def load_model():
