@@ -189,8 +189,10 @@ def load_model():
         print('Imagenet standard normalization')
         norm_mean = [0.485, 0.456, 0.406]
         norm_std = [0.229, 0.224, 0.225]
-        map_location = None if FLAGS.ngpus > 0 else (device if mps else 'cpu')
-        print('Getting VOneNet')
+
+        
+    map_location = None if FLAGS.ngpus > 0 else (device if mps else 'cpu')
+    print('Getting VOneNet')
 
     if FLAGS.model_type == "barebones":
         model = barebones_model(model_arch=FLAGS.model_arch)
