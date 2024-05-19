@@ -142,6 +142,7 @@ elif torch.backends.mps.is_built():
 else:
     device = "cpu"
 
+print("Device: ", device)
 
 simchan = FLAGS.simple_channels
 comchan = FLAGS.complex_channels
@@ -150,7 +151,7 @@ batch_size = FLAGS.batch_size
 cov_dir = f"{simchan}x{comchan}"
 file_dir = cov_dir + "x" + str(batch_size)
 
-print(file_dir)
+print("Cov matrix directory: ", file_dir)
 
 cov_matrix = None
 filters_r = None
