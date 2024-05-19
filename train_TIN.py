@@ -174,8 +174,8 @@ def load_model():
 
         elif os.path.exists(cov_dir):
             cov_matrix = torch.load(f"{cov_dir}/cov_matrix.pt", map_location = device)
-            filters_r = torch.load(f"{file_dir}/real_filters.pt", map_location = device)
-            filters_c = torch.load(f"{file_dir}/imaginary_filters.pt", map_location = device)
+            filters_r = torch.load(f"{cov_dir}/real_filters.pt", map_location = device)
+            filters_c = torch.load(f"{cov_dir}/imaginary_filters.pt", map_location = device)
 
         else:
             raise ValueError("There exist no pre-trained covariance values for this divisive normalisation configuration.")
