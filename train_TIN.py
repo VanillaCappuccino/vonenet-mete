@@ -202,7 +202,7 @@ def load_model():
                       sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
                       gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
                       complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
-                      noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc)
+                      noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc, use_TIN = True)
 
     if FLAGS.ngpus > 0 and torch.cuda.device_count() > 1:
         print('We have multiple GPUs detected')
