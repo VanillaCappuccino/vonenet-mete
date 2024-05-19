@@ -72,8 +72,6 @@ class VOneBlock(nn.Module):
         self.set_noise_mode(noise_mode, noise_scale, noise_level)
         self.fixed_noise = None
 
-        if use_TIN:
-
         self.simple_conv_q0 = GFB(self.in_channels, self.out_channels, self.ksize, self.stride)
         self.simple_conv_q1 = GFB(self.in_channels, self.out_channels, self.ksize, self.stride)
         self.simple_conv_q0.initialize(sf=self.sf, theta=self.theta, sigx=self.sigx, sigy=self.sigy,
