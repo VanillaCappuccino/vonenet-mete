@@ -5,12 +5,14 @@ from .modules import VOneBlock, VOneBlockDN
 from .back_ends import ResNetBackEnd, BasicBlock, Bottleneck, AlexNetBackEnd, CORnetSBackEnd
 from .params import generate_gabor_param
 import numpy as np
+from torch.nn import functional as F
 
 
 def VOneNetDN(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
             simple_channels=256, complex_channels=256,
             noise_mode='neuronal', noise_scale=0.35, noise_level=0.07, k_exc=25,
-            model_arch='resnet50', image_size=224, visual_degrees=8, ksize=25, stride=4):
+            model_arch='resnet50', image_size=224, visual_degrees=8, ksize=25, stride=4, kernel = None,
+            filters_r = None, filters_c = None):
 
 
     out_channels = simple_channels + complex_channels
@@ -35,7 +37,8 @@ def VOneNetDN(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
     vone_block = VOneBlockDN(sf=sf, theta=theta, sigx=sigx, sigy=sigy, phase=phase,
                            k_exc=k_exc, noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
                            simple_channels=simple_channels, complex_channels=complex_channels,
-                           ksize=ksize, stride=stride, input_size=image_size)
+                           ksize=ksize, stride=stride, input_size=image_size, kernel = kernel,
+                           filters_r = filters_r, filters_c = filters_c)
 
     if model_arch:
         bottleneck = nn.Conv2d(out_channels, 64, kernel_size=1, stride=1, bias=False)
@@ -75,10 +78,26 @@ def VOneNetDN(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
 
     return model
 
+def downsampler(voneblock, ksize):
+
+    ksz = (ksize,ksize)
+    
+    voneblock.simple_conv_q0.weight = nn.Parameter(F.interpolate(voneblock.simple_conv_q0.weight, size = ksz), requires_grad = False)
+    voneblock.simple_conv_q1.weight = nn.Parameter(F.interpolate(voneblock.simple_conv_q1.weight, size = ksz), requires_grad = False)
+
+    voneblock.ksize = ksize
+
+    voneblock.simple_conv_q0.padding = (voneblock.ksize//2, voneblock.ksize//2)
+    voneblock.simple_conv_q1.padding = (voneblock.ksize//2, voneblock.ksize//2)
+
+    return voneblock
+
+
 def VOneNet(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
             simple_channels=256, complex_channels=256,
             noise_mode='neuronal', noise_scale=0.35, noise_level=0.07, k_exc=25,
-            model_arch='resnet50', image_size=224, visual_degrees=8, ksize=25, stride=4):
+            model_arch='resnet50', image_size=224, visual_degrees=8, ksize=25, stride=4, use_TIN = False):
+
 
 
     out_channels = simple_channels + complex_channels
@@ -100,10 +119,19 @@ def VOneNet(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
     theta = theta/180 * np.pi
     phase = phase / 180 * np.pi
 
-    vone_block = VOneBlock(sf=sf, theta=theta, sigx=sigx, sigy=sigy, phase=phase,
+    if use_TIN:
+        ks = 25
+    else:
+        ks = ksize
+    
+        vone_block = VOneBlock(sf=sf, theta=theta, sigx=sigx, sigy=sigy, phase=phase,
                            k_exc=k_exc, noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
                            simple_channels=simple_channels, complex_channels=complex_channels,
-                           ksize=ksize, stride=stride, input_size=image_size)
+                           ksize=ks, stride=stride, input_size=image_size)
+        
+    vone_block = downsampler(vone_block, ksize = ksize)
+    
+
 
     if model_arch:
         bottleneck = nn.Conv2d(out_channels, 64, kernel_size=1, stride=1, bias=False)

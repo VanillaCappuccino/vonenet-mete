@@ -2,6 +2,7 @@ tiny-224/
 tiny-imagenet-200/
 *.zip
 *.ipynb
+8*/
 12*/
 16*/
 32*/

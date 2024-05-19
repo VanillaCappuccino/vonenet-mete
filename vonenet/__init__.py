@@ -74,7 +74,8 @@ def get_model(model_arch='resnet50', pretrained=True, map_location='cpu', **kwar
 
         model = globals()[f'VOneNet'](model_arch=model_id, stride=stride, k_exc=k_exc,
                                       simple_channels=simple_channels, complex_channels=complex_channels,
-                                      noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level)
+                                      noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
+                                      )
 
         if model_arch.lower() == 'resnet50_at':
             ckpt_data['state_dict'].pop('vone_block.div_u.weight')

@@ -4,7 +4,7 @@ import numpy as np
 import tqdm
 import fire
 
-parser = argparse.ArgumentParser(description='ImageNet Training')
+parser = argparse.ArgumentParser(description='Tiny ImageNet Training')
 ## General parameters
 parser.add_argument('--in_path', required=True,
                     help='path to ImageNet folder that contains train and val folders')
@@ -45,19 +45,19 @@ parser.add_argument('--model_arch', choices=['alexnet', 'resnet18', 'resnet50', 
                     help='back-end model architecture to load')
 parser.add_argument('--normalization', choices=['vonenet', 'imagenet'], default='vonenet',
                     help='image normalization to apply to models')
-parser.add_argument('--visual_degrees', default=8, type=float,
+parser.add_argument('--visual_degrees', default=2, type=float,
                     help='Field-of-View of the model in visual degrees')
 parser.add_argument("--model_type", choices = ["barebones", "vonenet", "vonenetdn"], default = "vonenet", help = "Choice of trained model.")
 
 ## VOneBlock parameters
 # Gabor filter bank
-parser.add_argument('--stride', default=4, type=int,
+parser.add_argument('--stride', default=2, type=int,
                     help='stride for the first convolution (Gabor Filter Bank)')
 parser.add_argument('--ksize', default=25, type=int,
                     help='kernel size for the first convolution (Gabor Filter Bank)')
-parser.add_argument('--simple_channels', default=256, type=int,
+parser.add_argument('--simple_channels', default=32, type=int,
                     help='number of simple channels in V1 block')
-parser.add_argument('--complex_channels', default=256, type=int,
+parser.add_argument('--complex_channels', default=32, type=int,
                     help='number of complex channels in V1 block')
 parser.add_argument('--gabor_seed', default=0, type=int,
                     help='seed for gabor initialization')
@@ -84,6 +84,7 @@ parser.add_argument('--noise_level', default=1, type=float,
 
 FLAGS, FIRE_FLAGS = parser.parse_known_args()
 
+use_TIN = True
 
 def set_gpus(n=2):
     """
@@ -142,6 +143,35 @@ else:
     device = "cpu"
 
 
+simchan = FLAGS.simple_channels
+comchan = FLAGS.complex_channels
+batch_size = FLAGS.batch_size
+
+cov_dir = f"{simchan}x{comchan}"
+file_dir = cov_dir + "x" + str(batch_size)
+
+cov_matrix = None
+filters_r = None
+filters_c = None
+
+
+
+if FLAGS.model_type == "vonenetdn":
+
+    if os.path.exists(file_dir):
+        cov_matrix = torch.load(f"{file_dir}/cov_matrix.pt", device = device)
+        filters_r = torch.load(f"{file_dir}/real_filters.pt", device = device)
+        filters_c = torch.load(f"{file_dir}/imaginary_filters.pt", device = device)
+
+    elif os.path.exists(cov_dir):
+        cov_matrix = torch.load(f"{cov_dir}/cov_matrix.pt", device = device)
+        filters_r = torch.load(f"{file_dir}/real_filters.pt", device = device)
+        filters_c = torch.load(f"{file_dir}/imaginary_filters.pt", device = device)
+
+    else:
+        raise ValueError("There exist no pre-trained covariance values for this divisive normalisation configuration.")
+
+
 if FLAGS.normalization == 'vonenet':
     print('VOneNet normalization')
     norm_mean = [0.5, 0.5, 0.5]
@@ -164,7 +194,8 @@ def load_model():
                 sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
                 gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
                 complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
-                noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc)
+                noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc,
+                cov_matrix = cov_matrix, filters_r = filters_r, filters_c = filters_c)
     else:
         model = get_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
                       visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
@@ -331,7 +362,7 @@ class ImageNetTrain(object):
         dataset = torchvision.datasets.ImageFolder(
             os.path.join(FLAGS.in_path, 'train'),
             torchvision.transforms.Compose([
-                torchvision.transforms.RandomAffine(degrees=30, translate=(0.05, 0.05), scale=(0.1, 1.2)),
+                torchvision.transforms.RandomAffine(degrees=30, translate=(0.05, 0.05), scale=(1, 1.2)),
                 torchvision.transforms.RandomHorizontalFlip(),
                 torchvision.transforms.ToTensor(),
                 torchvision.transforms.Normalize(mean=norm_mean, std=norm_std)

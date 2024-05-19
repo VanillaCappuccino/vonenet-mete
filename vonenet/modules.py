@@ -217,6 +217,51 @@ class DNBlock(nn.Module):
     # compute full expression
     # return
 
+    def __init__(self, beta=1e-6):
+        super().__init__()
+
+        self.kernel = None
+
+        self.beta = beta
+
+    def initialise(self, cov_matrix):
+
+        self.kernel = cov_matrix
+
+        print("Cov matrix passed to DNBlock")
+    
+    def denominator(self,x):
+
+        trial = x.reshape(-1, np.prod(list(x.shape[1:])))
+
+        div = self.kernel@trial.T
+
+        return div.T.reshape(x.shape)
+
+    def forward(self,x):
+            
+        if self.kernel != None:
+
+            den = self.denominator(x)
+
+            den += self.beta
+
+            return x / den
+        
+        else:
+
+            return x
+    
+
+
+class GDNBlock(nn.Module):
+
+    # initialise all parameters
+    # compute denominator (bias plus params of kernels all trainable?)
+    # bank size, image size
+    # compute full expression
+    # return
+
     def __init__(self, in_size, bank_size, beta=1e-4):
         super().__init__()
 
@@ -518,15 +563,27 @@ class VOneBlockDN(VOneBlock):
 
     def __init__(self, sf, theta, sigx, sigy, phase,
                  k_exc=25, noise_mode=None, noise_scale=1, noise_level=1,
-                 simple_channels=128, complex_channels=128, ksize=25, stride=4, input_size=224):
+                 simple_channels=128, complex_channels=128, ksize=25, stride=4, input_size=224,
+                 kernel = None, filters_r = None, filters_c = None):
 
         super().__init__(sf, theta, sigx, sigy, phase,
                  k_exc, noise_mode, noise_scale, noise_level,
                  simple_channels, complex_channels, ksize, stride, input_size)
 
 
-        self.dn = DNBlock(in_size=int(self.input_size/self.stride), bank_size=self.out_channels)
-        self.dn.initialize()
+        self.dn = DNBlock()
+        self.dn.initialise(kernel)
+
+        if filters_r:
+            self.simple_conv_q0.weight = filters_r
+        if filters_c:
+            self.simple_conv_q1.weight = filters_c
+
+        if filters_r != None or filters_c != None:
+            
+            self.ksize = self.simple_conv_q0.weight.shape[2]
+            self.simple_conv_q0.padding = (self.ksize//2, self.ksize//2)
+            self.simple_conv_q1.padding = (self.ksize//2, self.ksize//2)
 
     def forward(self, x):
         # Gabor activations [Batch, out_channels, H/stride, W/stride]

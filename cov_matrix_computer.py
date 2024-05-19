@@ -36,7 +36,7 @@ parser.add_argument('--simple_channels', default=16, type=int,
                     help='number of simple channels in V1 block')
 parser.add_argument('--complex_channels', default=16, type=int,
                     help='number of complex channels in V1 block')
-parser.add_argument('--device', choices=['cpu', 'cuda'], default='cpu',
+parser.add_argument('--device', choices=['cpu', 'mps', 'cuda'], default='cpu',
                     help='Device to use for computation')
 
 FLAGS, FIRE_FLAGS = parser.parse_known_args()
@@ -65,7 +65,7 @@ elif normalization == 'imagenet':
 
 if FLAGS.device == "cuda" and torch.cuda.is_available():
     device = "cuda"
-elif torch.backends.mps.is_built():
+elif FLAGS.device == "mps" and torch.backends.mps.is_built():
     device = "mps"
     mps = True
 else:
@@ -73,7 +73,7 @@ else:
 
 print("Device: ", device)
 
-von = VOneNet(simple_channels=simple_channels, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees).to(device)
+von = VOneNet(simple_channels=simple_channels, gabor_seed=0, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees).to(device)
 
 voneblock = von[0]
 
