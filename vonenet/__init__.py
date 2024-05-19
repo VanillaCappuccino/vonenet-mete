@@ -22,11 +22,24 @@ def barebones_model(model_arch='resnet50', pretrained=True, map_location='cpu', 
     Returns the back-end only.
     """
     if model_arch == "resnet18":
-        model = torchvision.models.resnet18(pretrained=True)
+        model = torchvision.models.resnet18(pretrained=pretrained)
     elif model_arch == "resnet50":
-        model = torchvision.models.resnet50(pretrained=True)
+        model = torchvision.models.resnet50(pretrained=pretrained)
     elif model_arch == "alexnet":
-        model = torchvision.models.alexnet(pretrained=True)
+        model = torchvision.models.alexnet(pretrained=pretrained)
+
+    """
+    Architectural changes as described by arXiv:2110.10645v2.
+    These changes were found to improve classification performance for TIN on RN18 by 8%.
+
+    """
+    if model_arch == "resnet18":
+        model.conv1.stride = (1,1)
+
+    print("Architectural changes complete. Pretrained: {}".format(pretrained))
+
+    model = nn.DataParallel(model)
+    model.to(map_location)
 
     return model
 

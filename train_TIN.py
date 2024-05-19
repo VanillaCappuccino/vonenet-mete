@@ -197,7 +197,7 @@ def load_model():
     print('Getting VOneNet')
 
     if FLAGS.model_type == "barebones":
-        model = barebones_model(model_arch=FLAGS.model_arch)
+        model = barebones_model(model_arch=FLAGS.model_arch, use_TIN = use_TIN)
     elif FLAGS.model_type == "vonenetdn":
         model = get_dn_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
                 visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
