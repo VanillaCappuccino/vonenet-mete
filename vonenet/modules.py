@@ -575,9 +575,9 @@ class VOneBlockDN(VOneBlock):
         self.dn.initialise(cov_matrix)
 
         if filters_r:
-            self.simple_conv_q0.weight = filters_r
+            self.simple_conv_q0 = filters_r
         if filters_c:
-            self.simple_conv_q1.weight = filters_c
+            self.simple_conv_q1 = filters_c
 
         if filters_r != None or filters_c != None:
 
