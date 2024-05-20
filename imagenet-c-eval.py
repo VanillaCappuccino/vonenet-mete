@@ -26,7 +26,7 @@ parser.add_argument('--model-name', '-m', type=str,
                              'resnext50', 'resnext101', 'resnext101_64'])
 # Acceleration
 parser.add_argument('--ngpu', type=int, default=1, help='0 = CPU.')
-parser.add_argument('--dataset_dir', type=str, default="datasets/ImageNet-C", help="Dataset directory.")
+parser.add_argument('--data_dir', type=str, default="datasets/ImageNet-C", help="Dataset directory.")
 
 parser.add_argument("--rn18_checkpoint", type=str, default="", help = "Location of RN18 checkpoint to load state dict from, if a checkpoint is to be used.")
 parser.add_argument("--vonenet_checkpoint", type=str, default="", help = "Location of VOneNet checkpoint to load state dict from, if a checkpoint is to be used.")
@@ -165,7 +165,7 @@ def show_performance(distortion_name):
 
     for severity in range(1, 6):
         distorted_dataset = dset.ImageFolder(
-            root=args.dataset_dir + distortion_name + '/' + str(severity),
+            root=args.data_dir + '/' distortion_name + '/' + str(severity),
             transform=trn.Compose([trn.ToTensor(), trn.Normalize(mean, std)]))
 
         distorted_dataset_loader = torch.utils.data.DataLoader(
