@@ -329,5 +329,8 @@ except:
     results_old = []
     pass
 
+for entry in results_old:
+    records.append(entry)
+
 records.append(contents)
 pickle.dump(records, open(os.path.join("", 'results.pkl'), 'wb'))
