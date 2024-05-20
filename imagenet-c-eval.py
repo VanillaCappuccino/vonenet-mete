@@ -15,6 +15,7 @@ import numpy as np
 from vonenet import get_model_test, barebones_model, get_dn_model_test
 import pickle
 from datetime import datetime
+from tqdm import tqdm
 
 
 parser = argparse.ArgumentParser(description='Evaluates robustness of various nets on ImageNet',
@@ -163,7 +164,7 @@ def auc(errs):  # area under the distortion-error curve
 def show_performance(distortion_name):
     errs = []
 
-    for severity in range(1, 6):
+    for severity in tqdm(range(1, 6)):
         distorted_dataset = dset.ImageFolder(
             root=args.data_dir + '/' + distortion_name + '/' + str(severity),
             transform=trn.Compose([trn.ToTensor(), trn.Normalize(mean, std)]))
@@ -172,7 +173,7 @@ def show_performance(distortion_name):
             distorted_dataset, batch_size=args.test_bs, shuffle=False, num_workers=args.prefetch, pin_memory=True)
 
         correct = 0
-        for batch_idx, (data, target) in enumerate(distorted_dataset_loader):
+        for batch_idx, (data, target) in tqdm(enumerate(distorted_dataset_loader)):
             data = V(data.cuda(), volatile=True)
 
             output = net(data)
@@ -183,7 +184,7 @@ def show_performance(distortion_name):
         errs.append(1 - 1.*correct / len(distorted_dataset))
 
     print('\n=Average', tuple(errs))
-    return np.mean(errs.to("cpu"))
+    return torch.mean(errs)
 
 
 # /////////////// End Further Setup ///////////////
