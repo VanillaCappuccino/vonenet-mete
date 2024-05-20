@@ -183,7 +183,7 @@ def show_performance(distortion_name):
         errs.append(1 - 1.*correct / len(distorted_dataset))
 
     print('\n=Average', tuple(errs))
-    return np.mean(errs)
+    return np.mean(errs.to("cpu"))
 
 
 # /////////////// End Further Setup ///////////////
