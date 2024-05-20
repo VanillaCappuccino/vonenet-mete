@@ -73,7 +73,7 @@ if __package__ is None:
 parser = argparse.ArgumentParser(description='Evaluates robustness of various nets on ImageNet',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 # Architecture
-parser.add_argument('--model-name', '-m', default='resnet18', type=str,
+parser.add_argument('--model_name', '-m', default='resnet18', type=str,
                     choices=['alexnet', 'squeezenet1.1', 'vgg11', 'vgg19', 'vggbn',
                              'densenet121', 'densenet169', 'densenet201', 'densenet161',
                              'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152',
