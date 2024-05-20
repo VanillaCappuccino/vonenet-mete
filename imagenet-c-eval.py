@@ -199,9 +199,10 @@ distortions = [
     'gaussian_noise', 'shot_noise', 'impulse_noise',
     'defocus_blur', 'glass_blur', 'motion_blur', 'zoom_blur',
     'snow', 'frost', 'fog', 'brightness',
-    'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression',
-    'speckle_noise', 'gaussian_blur', 'spatter', 'saturate'
+    'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'
 ]
+
+# 'speckle_noise', 'gaussian_blur', 'spatter', 'saturate'
 
 error_rates = []
 contents = []
