@@ -126,10 +126,10 @@ def VOneNet(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
     else:
         ks = ksize
     
-        vone_block = VOneBlock(sf=sf, theta=theta, sigx=sigx, sigy=sigy, phase=phase,
-                           k_exc=k_exc, noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
-                           simple_channels=simple_channels, complex_channels=complex_channels,
-                           ksize=ks, stride=stride, input_size=image_size)
+    vone_block = VOneBlock(sf=sf, theta=theta, sigx=sigx, sigy=sigy, phase=phase,
+                        k_exc=k_exc, noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
+                        simple_channels=simple_channels, complex_channels=complex_channels,
+                        ksize=ks, stride=stride, input_size=image_size)
         
     vone_block = downsampler(vone_block, ksize = ksize)
     
