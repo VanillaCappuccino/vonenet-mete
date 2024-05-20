@@ -21,7 +21,7 @@ from tqdm import tqdm
 parser = argparse.ArgumentParser(description='Evaluates robustness of various nets on ImageNet',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 # Architecture
-parser.add_argument('--model-name', '-m', type=str,
+parser.add_argument('--model_arch', '-m', type=str,
                     choices=['alexnet',
                              'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152',
                              'resnext50', 'resnext101', 'resnext101_64'])
@@ -45,7 +45,7 @@ if args.rn18_checkpoint != "":
     net = barebones_model(model_arch="resnet18", use_TIN = False, imagenet_ckpt=False)
     mdl = torch.load(args.rn18_checkpoint)
     state_dict = mdl["state_dict"]
-    print(state_dict)
+    
     net.load_state_dict(state_dict)
     args.test_bs = 5 # value default for rn18.
 
@@ -53,9 +53,7 @@ elif args.vonenet_checkpoint != "":
     model_type = "vonenet"
     mdl = torch.load(args.vonenet_checkpoint)
     
-    get_model_test(mdl, "resnet18", "cpu")
-
-    net = get_model_test()
+    net = get_model_test(mdl, "resnet18", "cpu")
 
     args.test_bs = 5 # value default for rn18.
 
@@ -64,9 +62,8 @@ elif args.vonenetdn_checkpoint != "":
 
     mdl = torch.load(args.vonenetdn_checkpoint)
 
-    get_model_test(mdl, "resnet18", "cpu")
+    net = get_dn_model_test(mdl, "resnet18", "cpu")
 
-    net = get_dn_model_test()
     args.test_bs = 5 # value default for rn18.
 
 elif args.model_name == 'alexnet':
