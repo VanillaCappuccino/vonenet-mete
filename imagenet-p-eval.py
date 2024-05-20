@@ -181,7 +181,7 @@ std = [0.229, 0.224, 0.225]
 
 num_workers = args.num_workers
 
-root_dir = args.data_dir
+root_dir = args.data_dir + "/"
 
 if args.difficulty > 1 and 'noise' in args.perturbation:
     loader = torch.utils.data.DataLoader(
