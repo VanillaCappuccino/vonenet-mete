@@ -165,7 +165,7 @@ def show_performance(distortion_name):
 
     for severity in range(1, 6):
         distorted_dataset = dset.ImageFolder(
-            root=args.data_dir + '/' distortion_name + '/' + str(severity),
+            root=args.data_dir + '/' + distortion_name + '/' + str(severity),
             transform=trn.Compose([trn.ToTensor(), trn.Normalize(mean, std)]))
 
         distorted_dataset_loader = torch.utils.data.DataLoader(
