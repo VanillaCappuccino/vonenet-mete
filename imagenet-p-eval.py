@@ -18,6 +18,7 @@ import os, sys
 from datetime import datetime
 import requests
 from tqdm import tqdm
+from vonenet import get_model, barebones_model, get_dn_model
 # import envoy
 
 # dataset = "Tiny-ImageNet-P"
@@ -98,7 +99,7 @@ print(args)
 # /////////////// Model Setup ///////////////
 
 if args.rn18_checkpoint != "":
-    net = models.resnet18()
+    net = barebones_model(model_arch="resnet18", use_TIN = False, imagenet_ckpt=False)
     mdl = torch.load(args.rn18_checkpoint)
     state_dict = mdl["state_dict"]
     print(state_dict)
@@ -125,79 +126,6 @@ else:
                                             # model_dir='/share/data/lang/users/dan/.torch/models'))
                                             model_dir='/share/data/vision-greg2/pytorch_models/alexnet'))
         args.test_bs = 6
-
-    elif args.model_name == 'squeezenet1.0':
-        net = models.SqueezeNet(version=1.0)
-        net.load_state_dict(model_zoo.load_url('https://download.pytorch.org/models/squeezenet1_0-a815701f.pth',
-                                            # model_dir='/share/data/lang/users/dan/.torch/models'))
-                                            model_dir='/share/data/vision-greg2/pytorch_models/squeezenet'))
-        args.test_bs = 6
-
-    elif args.model_name == 'squeezenet1.1':
-        net = models.SqueezeNet(version=1.1)
-        net.load_state_dict(model_zoo.load_url('https://download.pytorch.org/models/squeezenet1_1-f364aa15.pth',
-                                            # model_dir='/share/data/lang/users/dan/.torch/models'))
-                                            model_dir='/share/data/vision-greg2/pytorch_models/squeezenet'))
-        args.test_bs = 6
-
-    elif 'vgg' in args.model_name:
-        if 'bn' not in args.model_name and '11' not in args.model_name:
-            net = models.vgg19()
-            net.load_state_dict(model_zoo.load_url('https://download.pytorch.org/models/vgg19-dcbb9e9d.pth',
-                                                # model_dir='/share/data/lang/users/dan/.torch/models'))
-                                                model_dir='/share/data/vision-greg2/pytorch_models/vgg'))
-        elif '11' in args.model_name:
-            net = models.vgg11()
-            net.load_state_dict(model_zoo.load_url('https://download.pytorch.org/models/vgg11-bbd30ac9.pth',
-                                                # model_dir='/share/data/lang/users/dan/.torch/models'))
-                                                model_dir='/share/data/vision-greg2/pytorch_models/vgg'))
-        else:
-            net = models.vgg19_bn()
-            net.load_state_dict(model_zoo.load_url('https://download.pytorch.org/models/vgg19_bn-c79401a0.pth',
-                                                # model_dir='/share/data/lang/users/dan/.torch/models'))
-                                                model_dir='/share/data/vision-greg2/pytorch_models/vgg'))
-        args.test_bs = 2
-
-    elif args.model_name == 'densenet121':
-        net = models.densenet121()
-
-        import re
-        # '.'s are no longer allowed in module names, but pervious _DenseLayer
-        # has keys 'norm.1', 'relu.1', 'conv.1', 'norm.2', 'relu.2', 'conv.2'.
-        # They are also in the checkpoints in model_urls.
-        # This pattern is used to find such keys.
-        pattern = re.compile(
-            r'^(.*denselayer\d+\.(?:norm|relu|conv))\.((?:[12])\.(?:weight|bias|running_mean|running_var))$')
-        state_dict = model_zoo.load_url('https://download.pytorch.org/models/densenet121-a639ec97.pth',
-                                        model_dir='/share/data/vision-greg2/pytorch_models/densenet')
-        for key in list(state_dict.keys()):
-            res = pattern.match(key)
-            if res:
-                new_key = res.group(1) + res.group(2)
-                state_dict[new_key] = state_dict[key]
-                del state_dict[key]
-
-        net.load_state_dict(state_dict)
-        args.test_bs = 5
-
-    elif args.model_name == 'densenet161':
-        net = models.densenet161()
-
-        import re
-        pattern = re.compile(
-            r'^(.*denselayer\d+\.(?:norm|relu|conv))\.((?:[12])\.(?:weight|bias|running_mean|running_var))$')
-        state_dict = model_zoo.load_url('https://download.pytorch.org/models/densenet161-8d451a50.pth',
-                                        model_dir='/share/data/vision-greg2/pytorch_models/densenet')
-        for key in list(state_dict.keys()):
-            res = pattern.match(key)
-            if res:
-                new_key = res.group(1) + res.group(2)
-                state_dict[new_key] = state_dict[key]
-                del state_dict[key]
-
-        net.load_state_dict(state_dict)
-
-        args.test_bs = 3
 
     elif args.model_name == 'resnet18':
         net = models.resnet18()
