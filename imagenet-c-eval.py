@@ -217,7 +217,7 @@ print('mCE (unnormalized by AlexNet errors) (%): {:.2f}'.format(100 * np.mean(er
 records = []
 
 try:
-    results_old = pickle.load(open(os.path.join("", 'results.pkl'), 'rb'))
+    results_old = pickle.load(open(os.path.join("", 'imagenet_c_results.pkl'), 'rb'))
 except:
     results_old = []
     pass
@@ -231,4 +231,4 @@ cnts["results"] = contents
 
 records.append(cnts)
 
-pickle.dump(records, open(os.path.join("", 'results.pkl'), 'wb'))
+pickle.dump(records, open(os.path.join("", 'imagenet_c_results.pkl'), 'wb'))
