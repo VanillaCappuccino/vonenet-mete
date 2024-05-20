@@ -19,7 +19,9 @@ import os, sys
 from datetime import datetime
 import requests
 from tqdm import tqdm
-from vonenet import get_model, barebones_model, get_dn_model
+from vonenet import get_model_test, barebones_model, get_dn_model_test
+
+
 # import envoy
 
 # dataset = "Tiny-ImageNet-P"
@@ -92,7 +94,48 @@ parser.add_argument("--vonenet_checkpoint", type=str, default="", help = "Locati
 parser.add_argument("--vonenetdn_checkpoint", type=str, default="", help = "Location of VOneNetDN checkpoint to load state dict from, if a checkpoint is to be used.")
 parser.add_argument("--data_dir", type=str, default="datasets/ImageNet-P", help = "Location of ImageNet-P.")
 
+## Model parameters
+parser.add_argument('--torch_seed', default=0, type=int,
+                    help='seed for weights initializations and torch RNG')
+parser.add_argument('--model_arch', choices=['alexnet', 'resnet18', 'resnet50', 'resnet50_at', 'cornets'], default='resnet18',
+                    help='back-end model architecture to load')
+parser.add_argument('--normalization', choices=['vonenet', 'imagenet'], default='vonenet',
+                    help='image normalization to apply to models')
+parser.add_argument('--visual_degrees', default=2, type=float,
+                    help='Field-of-View of the model in visual degrees')
+parser.add_argument("--model_type", choices = ["barebones", "vonenet", "vonenetdn"], default = "vonenet", help = "Choice of trained model.")
 
+## VOneBlock parameters
+# Gabor filter bank
+parser.add_argument('--stride', default=2, type=int,
+                    help='stride for the first convolution (Gabor Filter Bank)')
+parser.add_argument('--ksize', default=25, type=int,
+                    help='kernel size for the first convolution (Gabor Filter Bank)')
+parser.add_argument('--simple_channels', default=32, type=int,
+                    help='number of simple channels in V1 block')
+parser.add_argument('--complex_channels', default=32, type=int,
+                    help='number of complex channels in V1 block')
+parser.add_argument('--gabor_seed', default=0, type=int,
+                    help='seed for gabor initialization')
+parser.add_argument('--sf_corr', default=0.75, type=float,
+                    help='')
+parser.add_argument('--sf_max', default=6, type=float,
+                    help='')
+parser.add_argument('--sf_min', default=0, type=float,
+                    help='')
+parser.add_argument('--rand_param', choices=[True, False], default=False, type=bool,
+                    help='random gabor params')
+parser.add_argument('--k_exc', default=25, type=float,
+                    help='')
+
+# Noise layer
+parser.add_argument('--noise_mode', choices=['gaussian', 'neuronal', None],
+                    default=None,
+                    help='noise distribution')
+parser.add_argument('--noise_scale', default=1, type=float,
+                    help='noise scale factor')
+parser.add_argument('--noise_level', default=1, type=float,
+                    help='noise level')
 
 args = parser.parse_args()
 print(args)
@@ -108,15 +151,21 @@ if args.rn18_checkpoint != "":
     args.test_bs = 5 # value default for rn18.
 
 elif args.vonenet_checkpoint != "":
-    net = models.resnet18()
-    state_dict = torch.load(args.checkpoint)
-    net.load_state_dict(state_dict)
+    mdl = torch.load(args.vonenet_checkpoint)
+    
+    get_model_test(mdl, "resnet18", "cpu")
+
+    net = get_model_test()
+
     args.test_bs = 5 # value default for rn18.
 
 elif args.vonenetdn_checkpoint != "":
-    net = models.resnet18()
-    state_dict = torch.load(args.checkpoint)
-    net.load_state_dict(state_dict)
+
+    mdl = torch.load(args.vonenetdn_checkpoint)
+
+    get_model_test(mdl, "resnet18", "cpu")
+
+    net = get_dn_model_test()
     args.test_bs = 5 # value default for rn18.
 
 else:

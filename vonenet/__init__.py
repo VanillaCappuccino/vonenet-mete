@@ -170,3 +170,75 @@ def get_dn_model(model_arch='resnet18', pretrained=True, map_location='cpu', **k
     return model
 
 
+def get_model_test(ckpt_data, model_arch='resnet18', map_location='cpu'):
+    """
+    Returns a VOneNet model.
+    Select pretrained=True for returning one of the 3 pretrained models.
+    model_arch: string with identifier to choose the architecture of the back-end (resnet50, cornets, alexnet)
+    """
+
+    stride = ckpt_data['flags']['stride']
+    simple_channels = ckpt_data['flags']['simple_channels']
+    complex_channels = ckpt_data['flags']['complex_channels']
+    k_exc = ckpt_data['flags']['k_exc']
+
+    noise_mode = ckpt_data['flags']['noise_mode']
+    noise_scale = ckpt_data['flags']['noise_scale']
+    noise_level = ckpt_data['flags']['noise_level']
+
+    model_id = ckpt_data['flags']['arch'].replace('_','').lower()
+
+    model = globals()[f'VOneNet'](model_arch=model_id, stride=stride, k_exc=k_exc,
+                                    simple_channels=simple_channels, complex_channels=complex_channels,
+                                    noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
+                                    )
+
+    if model_arch.lower() == 'resnet50_at':
+        ckpt_data['state_dict'].pop('vone_block.div_u.weight')
+        ckpt_data['state_dict'].pop('vone_block.div_t.weight')
+        model.load_state_dict(ckpt_data['state_dict'])
+    else:
+        model = Wrapper(model)
+        model.load_state_dict(ckpt_data['state_dict'])
+        model = model.module
+
+    model = nn.DataParallel(model)
+
+    model.to(map_location)
+    return model
+
+def get_dn_model_test(ckpt_data, model_arch='resnet18', map_location = "cpu"):
+    """
+    Returns a VOneNetDN model.
+    Select pretrained=True for returning one of the 3 pretrained models.
+    model_arch: string with identifier to choose the architecture of the back-end (resnet50, cornets, alexnet)
+    """
+
+    stride = ckpt_data['flags']['stride']
+    simple_channels = ckpt_data['flags']['simple_channels']
+    complex_channels = ckpt_data['flags']['complex_channels']
+    k_exc = ckpt_data['flags']['k_exc']
+
+    noise_mode = ckpt_data['flags']['noise_mode']
+    noise_scale = ckpt_data['flags']['noise_scale']
+    noise_level = ckpt_data['flags']['noise_level']
+
+    model_id = ckpt_data['flags']['arch'].replace('_','').lower()
+
+    model = globals()[f'VOneNetDN'](model_arch=model_id, stride=stride, k_exc=k_exc,
+                                    simple_channels=simple_channels, complex_channels=complex_channels,
+                                    noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level)
+
+    if model_arch.lower() == 'resnet50_at':
+        ckpt_data['state_dict'].pop('vone_block.div_u.weight')
+        ckpt_data['state_dict'].pop('vone_block.div_t.weight')
+        model.load_state_dict(ckpt_data['state_dict'])
+    else:
+        model = Wrapper(model)
+        model.load_state_dict(ckpt_data['state_dict'])
+        model = model.module
+
+    model = nn.DataParallel(model)
+
+    model.to(map_location)
+    return model
