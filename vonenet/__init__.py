@@ -186,7 +186,7 @@ def get_model_test(ckpt_data, model_arch='resnet18', map_location='cpu'):
     noise_scale = ckpt_data['flags']['noise_scale']
     noise_level = ckpt_data['flags']['noise_level']
 
-    model_id = ckpt_data['flags']['arch'].replace('_','').lower()
+    model_id = ckpt_data['flags']['model_arch'].replace('_','').lower()
 
     model = globals()[f'VOneNet'](model_arch=model_id, stride=stride, k_exc=k_exc,
                                     simple_channels=simple_channels, complex_channels=complex_channels,
@@ -223,7 +223,7 @@ def get_dn_model_test(ckpt_data, model_arch='resnet18', map_location = "cpu"):
     noise_scale = ckpt_data['flags']['noise_scale']
     noise_level = ckpt_data['flags']['noise_level']
 
-    model_id = ckpt_data['flags']['arch'].replace('_','').lower()
+    model_id = ckpt_data['flags']['model_arch'].replace('_','').lower()
 
     model = globals()[f'VOneNetDN'](model_arch=model_id, stride=stride, k_exc=k_exc,
                                     simple_channels=simple_channels, complex_channels=complex_channels,
