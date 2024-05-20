@@ -8,6 +8,7 @@ import torchvision.transforms as trn
 import torchvision.transforms.functional as trn_F
 import torchvision.models as models
 import torch.utils.model_zoo as model_zoo
+import pickle
 # from resnext_50_32x4d import resnext_50_32x4d
 # from resnext_101_32x4d import resnext_101_32x4d
 # from resnext_101_64x4d import resnext_101_64x4d
@@ -319,9 +320,14 @@ if args.difficulty > 1 and "noise" in args.perturbation:
 else:
     prt = args.perturbation
 
+records = []
 contents = [{"Model Name": model_name, "RunID": date_time, "Perturbation": prt, "mFR": "{:.5f}".format(mfr), "mT5D": "{:.5f}".format(mt5), "Zipf": "{:.5f}".format(zipf)}]
 
-with open(filename, "a+") as f:
+try:
+    results_old = pickle.load(open(os.path.join("", 'results.pkl'), 'rb'))
+except:
+    results_old = []
+    pass
 
-    w = csv.DictWriter(f, field_names)
-    w.writerows(contents)
+records.append(contents)
+pickle.dump(records, open(os.path.join("", 'results.pkl'), 'wb'))
