@@ -181,10 +181,10 @@ def show_performance(distortion_name):
             pred = output.data.max(1)[1]
             correct += pred.eq(target.cuda()).sum()
 
-        errs.append(1 - 1.*correct / len(distorted_dataset))
+        errs.append(np.float64(1 - 1.*correct / len(distorted_dataset)))
 
     print('\n=Average', tuple(errs))
-    return torch.mean(errs)
+    return np.mean(errs), errs
 
 
 # /////////////// End Further Setup ///////////////
@@ -207,9 +207,9 @@ error_rates = []
 contents = []
 
 for distortion_name in distortions:
-    rate = show_performance(distortion_name)
+    rate, errs = show_performance(distortion_name)
     error_rates.append(rate)
-    contents.append({"distortion": distortion_name, "error_rate": rate})
+    contents.append({"distortion": distortion_name, "error_rate": rate, "errs": errs})
     print('Distortion: {:15s}  | CE (unnormalized) (%): {:.2f}'.format(distortion_name, 100 * rate))
 
 
