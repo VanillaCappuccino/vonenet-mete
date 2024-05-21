@@ -56,7 +56,7 @@ elif args.vonenet_checkpoint != "":
     model_type = "vonenet"
     mdl = torch.load(args.vonenet_checkpoint)
     
-    net = get_model_test(mdl, "resnet18", "cpu")
+    net = get_model_test(mdl, "resnet18", "cpu", use_TIN=True)
 
     args.test_bs = 5 # value default for rn18.
 
