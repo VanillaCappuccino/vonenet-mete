@@ -102,6 +102,7 @@ def get_model(model_arch='resnet50', pretrained=True, map_location='cpu', **kwar
         model = nn.DataParallel(model)
     else:
         model = globals()[f'VOneNet'](model_arch=model_arch, **kwargs)
+        print("Kernel size: ", model[0].ksize)
         model = nn.DataParallel(model)
 
     model.to(map_location)
