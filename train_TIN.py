@@ -71,9 +71,9 @@ parser.add_argument('--gabor_seed', default=0, type=int,
                     help='seed for gabor initialization')
 parser.add_argument('--sf_corr', default=0.75, type=float,
                     help='')
-parser.add_argument('--sf_max', default=6, type=float,
+parser.add_argument('--sf_max', default=11.2, type=float,
                     help='')
-parser.add_argument('--sf_min', default=0, type=float,
+parser.add_argument('--sf_min', default=0.5, type=float,
                     help='')
 parser.add_argument('--rand_param', choices=[True, False], default=False, type=bool,
                     help='random gabor params')

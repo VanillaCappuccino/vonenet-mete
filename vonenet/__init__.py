@@ -222,12 +222,14 @@ def get_dn_model_test(ckpt_data, model_arch='resnet18', map_location = "cpu"):
     noise_mode = ckpt_data['flags']['noise_mode']
     noise_scale = ckpt_data['flags']['noise_scale']
     noise_level = ckpt_data['flags']['noise_level']
+    ksize = ckpt_data["flags"]["ksize"]
 
     model_id = ckpt_data['flags']['model_arch'].replace('_','').lower()
 
     model = globals()[f'VOneNetDN'](model_arch=model_id, stride=stride, k_exc=k_exc,
                                     simple_channels=simple_channels, complex_channels=complex_channels,
-                                    noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level)
+                                    noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
+                                    ksize = ksize)
 
     if model_arch.lower() == 'resnet50_at':
         ckpt_data['state_dict'].pop('vone_block.div_u.weight')

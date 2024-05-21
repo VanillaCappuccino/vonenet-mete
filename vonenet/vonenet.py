@@ -134,7 +134,6 @@ def VOneNet(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
     vone_block = downsampler(vone_block, ksize = ksize)
     
 
-
     if model_arch:
         bottleneck = nn.Conv2d(out_channels, 64, kernel_size=1, stride=1, bias=False)
         nn.init.kaiming_normal_(bottleneck.weight, mode='fan_out', nonlinearity='relu')
