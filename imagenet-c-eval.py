@@ -45,7 +45,7 @@ if args.rn18_checkpoint != "":
     net = barebones_model(model_arch="resnet18", use_TIN = False, imagenet_ckpt=False)
     mdl = torch.load(args.rn18_checkpoint)
     state_dict = mdl["state_dict"]
-    
+
     net.load_state_dict(state_dict)
     args.test_bs = 5 # value default for rn18.
 
@@ -126,9 +126,8 @@ print('Model Loaded')
 
 # /////////////// Data Loader ///////////////
 
-mean = [0.485, 0.456, 0.406]
-std = [0.229, 0.224, 0.225]
-
+mean = [0.5, 0.5, 0.5]
+std = [0.5, 0.5, 0.5]
 # clean_loader = torch.utils.data.DataLoader(dset.ImageFolder(
 #     root="/share/data/vision-greg/ImageNet/clsloc/images/val",
 #     transform=trn.Compose([trn.ToTensor(), trn.Normalize(mean, std)])),
