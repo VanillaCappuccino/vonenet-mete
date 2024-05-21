@@ -170,7 +170,7 @@ def get_dn_model(model_arch='resnet18', pretrained=True, map_location='cpu', **k
     return model
 
 
-def get_model_test(ckpt_data, model_arch='resnet18', map_location='cpu'):
+def get_model_test(ckpt_data, model_arch='resnet18', map_location='cpu', use_TIN = True):
     """
     Returns a VOneNet model.
     Select pretrained=True for returning one of the 3 pretrained models.
@@ -191,7 +191,7 @@ def get_model_test(ckpt_data, model_arch='resnet18', map_location='cpu'):
     model = globals()[f'VOneNet'](model_arch=model_id, stride=stride, k_exc=k_exc,
                                     simple_channels=simple_channels, complex_channels=complex_channels,
                                     noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
-                                    )
+                                    use_TIN = use_TIN)
 
     if model_arch.lower() == 'resnet50_at':
         ckpt_data['state_dict'].pop('vone_block.div_u.weight')
