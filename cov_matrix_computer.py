@@ -12,7 +12,7 @@ import pandas as pd
 import fire
 import cv2
 
-from vonenet.vonenet import VOneNet
+from vonenet import get_model
 
 parser = argparse.ArgumentParser(description='ImageNet Training')
 ## General parameters
@@ -22,6 +22,9 @@ parser.add_argument('--out_path', required=True,
                     help='path to ImageNet folder that contains train and val folders')
 parser.add_argument('--model_arch', choices=['alexnet', 'resnet18', 'resnet50', 'resnet50_at', 'cornets'], default='resnet18',
                     help='back-end model architecture to load')
+parser.add_argument('--ngpus', default=0, type=int,
+                    help='number of GPUs to use; 0 if you want to run on CPU')
+
 parser.add_argument('--normalization', choices=['vonenet', 'imagenet'], default='vonenet',
                     help='image normalization to apply to models')
 parser.add_argument('--batch_size', default=128, type=int,
@@ -30,16 +33,83 @@ parser.add_argument('--stride', default=2, type=int,
                     help='stride for the first convolution (Gabor Filter Bank)')
 parser.add_argument('--visual_degrees', default=2, type=float,
                     help='Field-of-View of the model in visual degrees')
-parser.add_argument('--ksize', default=7, type=int,
+parser.add_argument('--ksize', default=25, type=int,
                     help='kernel size for the first convolution (Gabor Filter Bank)')
-parser.add_argument('--simple_channels', default=16, type=int,
+parser.add_argument('--simple_channels', default=32, type=int,
                     help='number of simple channels in V1 block')
-parser.add_argument('--complex_channels', default=16, type=int,
+parser.add_argument('--complex_channels', default=32, type=int,
                     help='number of complex channels in V1 block')
+parser.add_argument('--gabor_seed', default=0, type=int,
+                    help='seed for gabor initialization')
+parser.add_argument('--sf_corr', default=0.75, type=float,
+                    help='')
+parser.add_argument('--sf_max', default=11.2, type=float,
+                    help='')
+parser.add_argument('--sf_min', default=0.5, type=float,
+                    help='')
+parser.add_argument('--rand_param', choices=[True, False], default=False, type=bool,
+                    help='random gabor params')
+parser.add_argument('--k_exc', default=25, type=float,
+                    help='')
+
+# Noise layer
+parser.add_argument('--noise_mode', choices=['gaussian', 'neuronal', None],
+                    default=None,
+                    help='noise distribution')
+parser.add_argument('--noise_scale', default=1, type=float,
+                    help='noise scale factor')
+parser.add_argument('--noise_level', default=1, type=float,
+                    help='noise level')
+
+
+
 parser.add_argument('--device', choices=['cpu', 'mps', 'cuda'], default='cpu',
                     help='Device to use for computation')
+parser.add_argument('--torch_seed', default=0, type=int,
+                    help='seed for weights initializations and torch RNG')
 
 FLAGS, FIRE_FLAGS = parser.parse_known_args()
+
+def set_gpus(n=2):
+    """
+    Finds all GPUs on the system and restricts to n of them that have the most
+    free memory.
+    """
+    if n > 0:
+        gpus = subprocess.run(shlex.split(
+            'nvidia-smi --query-gpu=index,memory.free,memory.total --format=csv,nounits'), check=True,
+            stdout=subprocess.PIPE).stdout
+        gpus = pd.read_csv(io.BytesIO(gpus), sep=', ', engine='python')
+        gpus = gpus[gpus['memory.total [MiB]'] > 10000]  # only above 10 GB
+        if os.environ.get('CUDA_VISIBLE_DEVICES') is not None:
+            visible = [int(i)
+                       for i in os.environ['CUDA_VISIBLE_DEVICES'].split(',')]
+            gpus = gpus[gpus['index'].isin(visible)]
+        gpus = gpus.sort_values(by='memory.free [MiB]', ascending=False)
+        os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # making sure GPUs are numbered the same way as in nvidia_smi
+        os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(
+            [str(i) for i in gpus['index'].iloc[:n]])
+    else:
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+
+if FLAGS.ngpus > 0:
+    print("Setting GPUs.")
+    set_gpus(FLAGS.ngpus)
+
+torch.manual_seed(FLAGS.torch_seed)
+
+torch.backends.cudnn.benchmark = True
+
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_built():
+    device = "mps"
+    mps = True
+else:
+    device = "cpu"
+
+map_location = None if FLAGS.ngpus > 0 else (device if mps else 'cpu')
 
 in_path = FLAGS.in_path
 model_arch = FLAGS.model_arch
@@ -73,7 +143,12 @@ else:
 
 print("Device: ", device)
 
-von = VOneNet(simple_channels=simple_channels, gabor_seed=0, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees).to(device)
+von = get_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
+                      visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
+                      sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
+                      gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
+                      complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
+                      noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc, use_TIN = True)
 
 voneblock = von[0]
 
