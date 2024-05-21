@@ -33,6 +33,9 @@ parser.add_argument("--rn18_checkpoint", type=str, default="", help = "Location 
 parser.add_argument("--vonenet_checkpoint", type=str, default="", help = "Location of VOneNet checkpoint to load state dict from, if a checkpoint is to be used.")
 parser.add_argument("--vonenetdn_checkpoint", type=str, default="", help = "Location of VOneNetDN checkpoint to load state dict from, if a checkpoint is to be used.")
 
+
+parser.add_argument("--norm", type=str, choices = ["imagenet, vonenet"], default="vonenet", help = "Normalization.")
+
 parser.add_argument("--identifier", type=str, default="")
 
 args = parser.parse_args()
@@ -125,9 +128,15 @@ cudnn.benchmark = True  # fire on all cylinders
 print('Model Loaded')
 
 # /////////////// Data Loader ///////////////
+if args.norm == "vonenet":
+    print('Vonenet standard normalization')
+    mean = [0.5, 0.5, 0.5]
+    std = [0.5, 0.5, 0.5]
 
-mean = [0.5, 0.5, 0.5]
-std = [0.5, 0.5, 0.5]
+else:
+    print('Imagenet standard normalization')
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
 # clean_loader = torch.utils.data.DataLoader(dset.ImageFolder(
 #     root="/share/data/vision-greg/ImageNet/clsloc/images/val",
 #     transform=trn.Compose([trn.ToTensor(), trn.Normalize(mean, std)])),
