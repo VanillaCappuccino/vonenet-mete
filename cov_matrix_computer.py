@@ -189,7 +189,7 @@ def data():
     data_loader = torch.utils.data.DataLoader(dataset,
                                                 batch_size=batch_size,
                                                 shuffle=True,
-                                                num_workers=2,
+                                                num_workers=16,
                                                 pin_memory=True)
 
     return data_loader
