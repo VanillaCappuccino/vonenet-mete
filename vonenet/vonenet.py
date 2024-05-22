@@ -131,7 +131,7 @@ def VOneNet(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
                         simple_channels=simple_channels, complex_channels=complex_channels,
                         ksize=ks, stride=stride, input_size=image_size)
         
-    vone_block = downsampler(vone_block, ksize = ksize)
+    # vone_block = downsampler(vone_block, ksize = ksize)
     
 
     if model_arch:
