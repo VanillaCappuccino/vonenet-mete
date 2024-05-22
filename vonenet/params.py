@@ -70,18 +70,18 @@ def generate_gabor_param(features, seed=0, rand_flag=False, sf_corr=0, sf_max=9,
 
         sf_dist = sf_dist / sf_dist.sum()
 
-    np.random.seed(42)
+    # np.random.seed(42)
     phase = sample_dist(phase_dist, phase_bins, features)
     ori = sample_dist(ori_dist, ori_bins, features)
     ori[ori < 0] = ori[ori < 0] + 180
 
     if rand_flag:
-        np.random.seed(24)
+        # np.random.seed(24)
         sf = sample_dist(sf_dist, sf_bins, features, scale='log2')
         nx = sample_dist(nx_dist, nx_bins, features, scale='log10')
         ny = sample_dist(ny_dist, ny_bins, features, scale='log10')
     else:
-        np.random.seed(24)
+        # np.random.seed(24)
         samps = np.random.multivariate_normal([0, 0], cov_mat, features)
         samps_cdf = stats.norm.cdf(samps)
 
