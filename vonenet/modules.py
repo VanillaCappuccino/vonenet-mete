@@ -37,8 +37,8 @@ class GFB(nn.Module):
     def forward(self, x):
         return F.conv2d(x, self.weight, None, self.stride, self.padding)
 
-    def initialize(self, sf, theta, sigx, sigy, phase):
-        # torch.manual_seed(23)
+    def initialize(self, sf, theta, sigx, sigy, phase, rgb_seed = 0):
+        torch.manual_seed(rgb_seed)
         random_channel = torch.randint(0, self.in_channels, (self.out_channels,))
         self.random_channel = random_channel
         for i in range(self.out_channels):
@@ -50,7 +50,8 @@ class GFB(nn.Module):
 class VOneBlock(nn.Module):
     def __init__(self, sf, theta, sigx, sigy, phase,
                  k_exc=25, noise_mode=None, noise_scale=1, noise_level=1,
-                 simple_channels=128, complex_channels=128, ksize=25, stride=4, input_size=224):
+                 simple_channels=128, complex_channels=128, ksize=25, stride=4, input_size=224,
+                 rgb_seed = 0):
         super().__init__()
 
         self.in_channels = 3
@@ -75,9 +76,9 @@ class VOneBlock(nn.Module):
         self.simple_conv_q0 = GFB(self.in_channels, self.out_channels, self.ksize, self.stride)
         self.simple_conv_q1 = GFB(self.in_channels, self.out_channels, self.ksize, self.stride)
         self.simple_conv_q0.initialize(sf=self.sf, theta=self.theta, sigx=self.sigx, sigy=self.sigy,
-                                       phase=self.phase)
+                                       phase=self.phase, rgb_seed = rgb_seed)
         self.simple_conv_q1.initialize(sf=self.sf, theta=self.theta, sigx=self.sigx, sigy=self.sigy,
-                                       phase=self.phase + np.pi / 2)
+                                       phase=self.phase + np.pi / 2, rgb_seed = rgb_seed+1)
 
         self.simple = nn.ReLU(inplace=True)
         self.complex = Identity()
