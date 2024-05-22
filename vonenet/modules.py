@@ -38,7 +38,7 @@ class GFB(nn.Module):
         return F.conv2d(x, self.weight, None, self.stride, self.padding)
 
     def initialize(self, sf, theta, sigx, sigy, phase):
-        torch.manual_seed(23)
+        # torch.manual_seed(23)
         random_channel = torch.randint(0, self.in_channels, (self.out_channels,))
         self.random_channel = random_channel
         for i in range(self.out_channels):
