@@ -83,13 +83,14 @@ def get_model(model_arch='resnet50', pretrained=True, map_location='cpu', **kwar
         noise_mode = ckpt_data['flags']['noise_mode']
         noise_scale = ckpt_data['flags']['noise_scale']
         noise_level = ckpt_data['flags']['noise_level']
+        image_size = ckpt_data["flags"]["image_size"]
 
         model_id = ckpt_data['flags']['arch'].replace('_','').lower()
 
         model = globals()[f'VOneNet'](model_arch=model_id, stride=stride, k_exc=k_exc,
                                       simple_channels=simple_channels, complex_channels=complex_channels,
                                       noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
-                                      )
+                                      image_size = image_size)
 
         if model_arch.lower() == 'resnet50_at':
             ckpt_data['state_dict'].pop('vone_block.div_u.weight')
@@ -104,6 +105,7 @@ def get_model(model_arch='resnet50', pretrained=True, map_location='cpu', **kwar
     else:
         model = globals()[f'VOneNet'](model_arch=model_arch, **kwargs)
         print("Kernel size: ", model[0].ksize)
+        print("Image size: ", model.image_size)
         model = nn.DataParallel(model)
 
     model.to(map_location)

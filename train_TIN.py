@@ -47,6 +47,7 @@ parser.add_argument("--latest_only", action="store_true", help="Save each steppe
 parser.add_argument("--imagenet1k_ckpt", action="store_true", help="Use ImageNet1k checkpoint from Torchvision.")
 
 ## Model parameters
+parser.add_argument("--image_size", default = 64, type = int, help = "Input image size.")
 parser.add_argument('--torch_seed', default=0, type=int,
                     help='seed for weights initializations and torch RNG')
 parser.add_argument('--model_arch', choices=['alexnet', 'resnet18', 'resnet50', 'resnet50_at', 'cornets'], default='resnet18',
@@ -211,7 +212,8 @@ def load_model():
                       sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
                       gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
                       complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
-                      noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc, use_TIN = use_TIN)
+                      noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc, use_TIN = use_TIN,
+                      image_size = FLAGS.image_size)
 
     if FLAGS.ngpus > 0 and torch.cuda.device_count() > 1:
         print('We have multiple GPUs detected')
