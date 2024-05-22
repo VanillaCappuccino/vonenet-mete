@@ -41,6 +41,12 @@ parser.add_argument('--complex_channels', default=32, type=int,
                     help='number of complex channels in V1 block')
 parser.add_argument('--gabor_seed', default=0, type=int,
                     help='seed for gabor initialization')
+
+parser.add_argument('--rgb_seed', default=0, type=int,
+                    help='seed for gabor initialization')
+
+parser.add_argument('--image_size', default=64, type=int,
+                    help='seed for gabor initialization')
 parser.add_argument('--sf_corr', default=0.75, type=float,
                     help='')
 parser.add_argument('--sf_max', default=11.2, type=float,
@@ -122,7 +128,8 @@ ksize = FLAGS.ksize
 k_exc = ksize
 simple_channels = FLAGS.simple_channels
 complex_channels = FLAGS.complex_channels
-image_size = 64
+image_size = FLAGS.image_size
+rgb_seed = FLAGS.rgb_seed
 
 if normalization == 'vonenet':
     print('VOneNet normalization')
@@ -148,7 +155,8 @@ von = get_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrain
                       sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
                       gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
                       complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
-                      noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc, use_TIN = True)
+                      noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc, use_TIN = True,
+                      image_size = image_size, rgb_seed = rgb_seed)
 
 voneblock = von[0]
 

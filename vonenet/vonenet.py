@@ -98,7 +98,8 @@ def downsampler(voneblock, ksize):
 def VOneNet(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
             simple_channels=256, complex_channels=256,
             noise_mode='neuronal', noise_scale=0.35, noise_level=0.07, k_exc=25,
-            model_arch='resnet50', image_size=224, visual_degrees=8, ksize=25, stride=4, use_TIN = False):
+            model_arch='resnet50', image_size=224, visual_degrees=8, ksize=25, stride=4, use_TIN = False,
+            rgb_seed = 0):
 
 
 
@@ -129,7 +130,7 @@ def VOneNet(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
     vone_block = VOneBlock(sf=sf, theta=theta, sigx=sigx, sigy=sigy, phase=phase,
                         k_exc=k_exc, noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
                         simple_channels=simple_channels, complex_channels=complex_channels,
-                        ksize=ks, stride=stride, input_size=image_size)
+                        ksize=ks, stride=stride, input_size=image_size, rgb_seed = rgb_seed)
         
     # vone_block = downsampler(vone_block, ksize = ksize)
     

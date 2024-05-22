@@ -15,6 +15,9 @@ parser = argparse.ArgumentParser(description='Tiny ImageNet Training')
 ## General parameters
 parser.add_argument('--in_path', required=True,
                     help='path to ImageNet folder that contains train and val folders')
+parser.add_argument('--cov_path', type = str,
+                    help='path to folder that contains cov matrix and filters')
+
 parser.add_argument('-o', '--output_path', default=None,
                     help='path for storing ')
 parser.add_argument('-restore_epoch', '--restore_epoch', default=0, type=int,
@@ -153,6 +156,8 @@ comchan = FLAGS.complex_channels
 batch_size = FLAGS.batch_size
 
 cov_dir = f"{simchan}x{comchan}"
+
+
 file_dir = cov_dir + "x" + str(batch_size)
 
 print("Cov matrix directory: ", file_dir)
@@ -166,12 +171,20 @@ if FLAGS.model_type == "vonenetdn":
 
     print("Loading covariance structures.")
 
-    if os.path.exists(file_dir):
+    if os.path.exists(FLAGS.cov_path):
+        print("Cov matrix directory: ", FLAGS.cov_path)
+        cov_matrix = torch.load(f"{FLAGS.cov_path}/cov_matrix.pt", map_location = device)
+        filters_r = torch.load(f"{FLAGS.cov_path}/real_filters.pt", map_location = device)
+        filters_c = torch.load(f"{FLAGS.cov_path}/imaginary_filters.pt", map_location = device)
+
+    elif os.path.exists(file_dir):
+        print("Cov matrix directory: ", file_dir)
         cov_matrix = torch.load(f"{file_dir}/cov_matrix.pt", map_location = device)
         filters_r = torch.load(f"{file_dir}/real_filters.pt", map_location = device)
         filters_c = torch.load(f"{file_dir}/imaginary_filters.pt", map_location = device)
 
     elif os.path.exists(cov_dir):
+        print("Cov matrix directory: ", cov_dir)
         cov_matrix = torch.load(f"{cov_dir}/cov_matrix.pt", map_location = device)
         filters_r = torch.load(f"{cov_dir}/real_filters.pt", map_location = device)
         filters_c = torch.load(f"{cov_dir}/imaginary_filters.pt", map_location = device)
