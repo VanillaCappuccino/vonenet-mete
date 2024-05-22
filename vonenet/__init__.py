@@ -35,6 +35,7 @@ def barebones_model(model_arch='resnet50', imagenet_ckpt=True, map_location='cpu
     """
     if model_arch == "resnet18":
         model.conv1.stride = (1,1)
+        model.fc = nn.Linear(512, 200)
 
     print("Architectural changes complete. Pretrained: {}".format(imagenet_ckpt))
 

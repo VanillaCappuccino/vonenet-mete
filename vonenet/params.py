@@ -59,8 +59,8 @@ def generate_gabor_param(features, seed=0, rand_flag=False, sf_corr=0, sf_max=9,
         ny_dist_marg = n_joint_dist / n_joint_dist.sum(axis=1, keepdims=True)
 
         # DeValois 1982b
-        sf_bins = np.array([0.5, 0.7, 1.0, 1.4, 2.0, 2.8, 4.0, 5.6, 8])
-        sf_dist = np.array([4,  4,  8, 25, 32, 26, 28, 12])
+        sf_bins = np.array([0.5, 0.7, 1.0, 1.4, 2.0, 2.8, 4.0, 5.6, 8, 11.2, 16.0])
+        sf_dist = np.array([4,  4,  8, 25, 32, 26, 28, 12, 6, 2, 1])
 
         sfmax_ind = np.where(sf_bins <= sf_max)[0][-1]
         sfmin_ind = np.where(sf_bins >= sf_min)[0][0]
