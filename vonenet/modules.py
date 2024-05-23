@@ -285,8 +285,6 @@ class DNBlockv2(nn.Module):
     
     def denominator(self,x):
 
-        print(x.shape)
-
         inter = x.permute(0,3,2,1)
         result = torch.einsum('bxyc,cd->bxyc', inter, self.norm_mults)
 
