@@ -287,9 +287,12 @@ class DNBlockv2(nn.Module):
 
         print(x.shape)
 
-        inter = self.norm_mults@x
+        inter = x.permute(0,3,2,1)
+        result = torch.einsum('bxyc,cd->bxyc', inter, self.norm_mults)
 
-        trial = inter.reshape(-1, np.prod(list(inter.shape[1:])))
+        result = result.permute(0, 3, 1, 2)
+
+        trial = result.reshape(-1, np.prod(list(result.shape[1:])))
 
         div = self.kernel@trial.T
 
