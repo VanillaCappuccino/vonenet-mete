@@ -263,7 +263,7 @@ class DNBlockv2(nn.Module):
     # compute full expression
     # return
 
-    def __init__(self, beta=0.0001, channels = 64):
+    def __init__(self, beta=1, channels = 64):
         super().__init__()
 
         self.kernel = None
@@ -272,7 +272,7 @@ class DNBlockv2(nn.Module):
 
         self.channels = channels
 
-        norm_mults = torch.rand(channels, channels)
+        norm_mults = torch.zeros(channels, channels) * 1 / channels**2
 
         self.norm_mults = nn.Parameter(torch.tensor(norm_mults), requires_grad=True)
 
