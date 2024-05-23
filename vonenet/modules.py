@@ -266,13 +266,13 @@ class DNBlockv2(nn.Module):
 
         self.kernel = None
 
-        self.beta = nn.Parameter(beta, requires_grad=True)
+        self.beta = nn.Parameter(torch.tensor(beta), requires_grad=True)
 
         self.channels = channels
 
         norm_mults = torch.rand(channels, channels)
 
-        self.norm_mults = nn.Parameter(norm_mults, requires_grad=True)
+        self.norm_mults = nn.Parameter(torch.tensor(norm_mults), requires_grad=True)
 
         
     def initialise(self, cov_matrix):
@@ -335,7 +335,7 @@ class GaussianDNBlock(nn.Module):
         params = torch.rand(self.bank_size, self.bank_size, 6)
 
         self.params = nn.Parameter(params, requires_grad = True)
-        self.beta = nn.Parameter(self.beta, requires_grad = True)
+        self.beta = nn.Parameter(torch.tensor(self.beta), requires_grad = True)
         # enable autograd to accumulate across params
 
 
