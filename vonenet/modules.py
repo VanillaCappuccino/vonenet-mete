@@ -261,7 +261,7 @@ class DNBlockv2(nn.Module):
     # compute full expression
     # return
 
-    def __init__(self, beta=1e-6, channels = 64):
+    def __init__(self, beta=0.0001, channels = 64):
         super().__init__()
 
         self.kernel = None
@@ -314,7 +314,7 @@ class GaussianDNBlock(nn.Module):
     # compute full expression
     # return
 
-    def __init__(self, beta=1e-6, channels = 64, in_size = 64, ksize = 7):
+    def __init__(self, beta=0.0001, channels = 64, in_size = 64, ksize = 7):
         super().__init__()
 
         self.in_size = in_size
