@@ -342,11 +342,11 @@ class GaussianDNBlock(nn.Module):
         # enable autograd to accumulate across params
 
 
-    def computeCoefficients(self):
+    def computeCoefficients(self, device: torch.device = torch.device(device)):
 
         # NEEDS TO HAPPEN ON CPU!!!
 
-        weights = torch.zeros(self.bank_size, self.bank_size, self.ksize, self.ksize)
+        weights = torch.zeros(self.bank_size, self.bank_size, self.ksize, self.ksize).to(device)
 
         # x = torch.linspace(-1, 1, self.in_size, device="cpu")
         # params = self.params.to("cpu")
