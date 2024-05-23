@@ -60,8 +60,8 @@ parser.add_argument('--normalization', choices=['vonenet', 'imagenet'], default=
 parser.add_argument('--visual_degrees', default=2, type=float,
                     help='Field-of-View of the model in visual degrees')
 parser.add_argument("--model_type", choices = ["barebones", "vonenet", "vonenetdn"], default = "vonenet", help = "Choice of trained model.")
-parser.add_argument("--trainable_vonenetdn", type = bool, default = False, help = "Whether to train divisive norm scalars.")
-parser.add_argument("--paper_implementation", type = bool, default = False, help = "Use the implementation of DN in the original paper.")
+parser.add_argument("--trainable_vonenetdn", choices=[True, False], default = False, help = "Whether to train divisive norm scalars.")
+parser.add_argument("--paper_implementation", choices=[True, False], default = False, help = "Use the implementation of DN in the original paper.")
 
 
 
@@ -171,7 +171,7 @@ filters_r = None
 filters_c = None
 
 
-if FLAGS.model_type == "vonenetdn":
+if FLAGS.model_type == "vonenetdn" and not FLAGS.paper_implementation:
 
     print("Loading covariance structures.")
 

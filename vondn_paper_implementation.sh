@@ -1,0 +1,1 @@
+python train_TIN.py --in_path tiny-imagenet-200 -o checkpoints/vonenetdn-cov-128-77-paper --model_type vonenetdn --paper_implementation True --ngpus 1 --workers 16 --epochs 60 --save_model_epochs 1 --latest_only train
