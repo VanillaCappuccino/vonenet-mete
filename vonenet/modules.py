@@ -268,13 +268,13 @@ class DNBlockv2(nn.Module):
 
         self.kernel = None
 
-        self.beta = nn.Parameter(torch.tensor(beta), requires_grad=True)
+        self.beta = nn.Parameter(torch.tensor(beta), requires_grad=False)
 
         self.channels = channels
 
         norm_mults = torch.zeros(channels, channels) * 1 / channels**2
 
-        self.norm_mults = nn.Parameter(torch.tensor(norm_mults), requires_grad=True)
+        self.norm_mults = nn.Parameter(torch.tensor(norm_mults), requires_grad=False)
 
         
     def initialise(self, cov_matrix):
