@@ -631,6 +631,8 @@ class VOneBlockDN(VOneBlock):
             
             self.dn.initialise(cov_matrix)
 
+        self.dn.to(device)
+
         if filters_r:
             self.simple_conv_q0 = filters_r
         if filters_c:
