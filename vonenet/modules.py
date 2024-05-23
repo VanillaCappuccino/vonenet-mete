@@ -252,10 +252,8 @@ class DNBlock(nn.Module):
         else:
 
             return x
-    
-
-
-class GDNBlock(nn.Module):
+        
+class DNBlockv2(nn.Module):
 
     # initialise all parameters
     # compute denominator (bias plus params of kernels all trainable?)
@@ -263,7 +261,60 @@ class GDNBlock(nn.Module):
     # compute full expression
     # return
 
-    def __init__(self, in_size, bank_size, beta=1e-4):
+    def __init__(self, beta=1e-6, channels = 64):
+        super().__init__()
+
+        self.kernel = None
+
+        self.beta = nn.Parameter(beta, requires_grad=True)
+
+        self.channels = channels
+
+        norm_mults = torch.rand(channels, channels)
+
+        self.norm_mults = nn.Parameter(norm_mults, requires_grad=True)
+
+        
+    def initialise(self, cov_matrix):
+
+        self.kernel = cov_matrix
+
+        print("Cov matrix passed to DNBlock")
+    
+    def denominator(self,x):
+
+        inter = self.norm_mults@x
+
+        trial = inter.reshape(-1, np.prod(list(inter.shape[1:])))
+
+        div = self.kernel@trial.T
+
+        return div.T.reshape(x.shape)
+
+    def forward(self,x):
+            
+        if self.kernel != None:
+
+            den = self.denominator(x)
+
+            den += self.beta
+
+            return x / den
+        
+        else:
+
+            return x
+    
+
+class GaussianDNBlock(nn.Module):
+
+    # initialise all parameters
+    # compute denominator (bias plus params of kernels all trainable?)
+    # bank size, image size
+    # compute full expression
+    # return
+
+    def __init__(self, beta=1e-4, channels = 64, in_size = ):
         super().__init__()
 
         self.in_size = in_size
@@ -565,14 +616,17 @@ class VOneBlockDN(VOneBlock):
     def __init__(self, sf, theta, sigx, sigy, phase,
                  k_exc=25, noise_mode=None, noise_scale=1, noise_level=1,
                  simple_channels=128, complex_channels=128, ksize=25, stride=4, input_size=224,
-                 cov_matrix = None, filters_r = None, filters_c = None):
+                 cov_matrix = None, filters_r = None, filters_c = None, trainable = False):
 
         super().__init__(sf, theta, sigx, sigy, phase,
                  k_exc, noise_mode, noise_scale, noise_level,
                  simple_channels, complex_channels, ksize, stride, input_size)
 
+        if trainable:
+            self.dn = DNBlockv2(channels=simple_channels+complex_channels)
+        else:
+            self.dn = DNBlock()
 
-        self.dn = DNBlock()
         self.dn.initialise(cov_matrix)
 
         if filters_r:

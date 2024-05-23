@@ -60,6 +60,7 @@ parser.add_argument('--normalization', choices=['vonenet', 'imagenet'], default=
 parser.add_argument('--visual_degrees', default=2, type=float,
                     help='Field-of-View of the model in visual degrees')
 parser.add_argument("--model_type", choices = ["barebones", "vonenet", "vonenetdn"], default = "vonenet", help = "Choice of trained model.")
+parser.add_argument("--trainable_vonenetdn", type = bool, default = False, help = "Whether to train divisive norm scalars.")
 
 ## VOneBlock parameters
 # Gabor filter bank
@@ -218,7 +219,7 @@ def load_model():
                 gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
                 complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
                 noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc,
-                cov_matrix = cov_matrix, filters_r = filters_r, filters_c = filters_c)
+                cov_matrix = cov_matrix, filters_r = filters_r, filters_c = filters_c, trainable = FLAGS.trainable_vonenetdn)
     else:
         model = get_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
                       visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
