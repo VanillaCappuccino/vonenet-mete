@@ -151,12 +151,12 @@ else:
 
 print("Device: ", device)
 
-von = VOneNet(model_arch=FLAGS.model_arch, pretrained=False,
+von = VOneNet(model_arch=FLAGS.model_arch,
                 visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
                 sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
                 gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
                 complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
-                noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc, use_TIN = True,
+                noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc,
                 image_size = image_size, rgb_seed = rgb_seed)
 
 voneblock = von[0]
