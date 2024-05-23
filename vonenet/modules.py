@@ -321,7 +321,7 @@ class GaussianDNBlock(nn.Module):
         self.bank_size = channels
         self.kernel = gaussianKernel
 
-        self.beta = beta
+        self.beta = nn.Parameter(torch.tensor(beta), requires_grad = True)
 
         self.ksize = ksize
 
@@ -335,7 +335,6 @@ class GaussianDNBlock(nn.Module):
         params = torch.rand(self.bank_size, self.bank_size, 6)
 
         self.params = nn.Parameter(params, requires_grad = True)
-        self.beta = nn.Parameter(torch.tensor(self.beta), requires_grad = True)
         # enable autograd to accumulate across params
 
 
