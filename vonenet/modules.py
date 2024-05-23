@@ -182,8 +182,8 @@ class VOneBlock(nn.Module):
 @torch.jit.script
 def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50, device: torch.device = torch.device(device)):
 
-    Sigma = torch.diag(torch.hstack([rho, sigma]))
-    mu = torch.hstack([v,w])
+    Sigma = torch.diag(torch.hstack([rho, sigma])).to(device)
+    mu = torch.hstack([v,w]).to(device)
 
     # x = np.arange(0, in_size)
     x = torch.linspace(-1,1,in_size).to(device)
@@ -195,7 +195,7 @@ def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50, device: torch.dev
     x_rot = x * torch.cos(theta) + y * torch.sin(theta)
     y_rot = -x * torch.sin(theta) + y * torch.cos(theta)
 
-    pos = torch.zeros(x_rot.shape + (2,))
+    pos = torch.zeros(x_rot.shape + (2,)).to(device)
     pos[:, :, 0] = x_rot
     pos[:, :, 1] = y_rot
 
