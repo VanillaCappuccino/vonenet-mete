@@ -285,6 +285,8 @@ class DNBlockv2(nn.Module):
     
     def denominator(self,x):
 
+        print(x.shape)
+
         inter = self.norm_mults@x
 
         trial = inter.reshape(-1, np.prod(list(inter.shape[1:])))
@@ -635,9 +637,9 @@ class VOneBlockDN(VOneBlock):
 
         self.dn.to(device)
 
-        if filters_r:
+        if filters_r != None:
             self.simple_conv_q0 = filters_r
-        if filters_c:
+        if filters_c != None:
             self.simple_conv_q1 = filters_c
 
         if filters_r != None or filters_c != None:
