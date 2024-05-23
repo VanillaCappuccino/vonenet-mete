@@ -206,7 +206,7 @@ def get_model_test(ckpt_data, model_arch='resnet18', map_location='cpu', use_TIN
         model.load_state_dict(ckpt_data['state_dict'])
         model = model.module
 
-    model = nn.DataParallel(model)
+    # model = nn.DataParallel(model)
 
     model.to(map_location)
     return model

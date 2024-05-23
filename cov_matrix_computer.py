@@ -13,6 +13,7 @@ import fire
 import cv2
 
 from vonenet import get_model
+from vonenet.vonenet import VOneNet
 
 parser = argparse.ArgumentParser(description='ImageNet Training')
 ## General parameters
@@ -150,13 +151,13 @@ else:
 
 print("Device: ", device)
 
-von = get_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
-                      visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
-                      sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
-                      gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
-                      complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
-                      noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc, use_TIN = True,
-                      image_size = image_size, rgb_seed = rgb_seed)
+von = VOneNet(model_arch=FLAGS.model_arch, pretrained=False,
+                visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
+                sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
+                gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
+                complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
+                noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc, use_TIN = True,
+                image_size = image_size, rgb_seed = rgb_seed)
 
 voneblock = von[0]
 
