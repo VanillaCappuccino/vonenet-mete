@@ -314,16 +314,16 @@ class GaussianDNBlock(nn.Module):
     # compute full expression
     # return
 
-    def __init__(self, beta=1e-4, channels = 64, in_size = ):
+    def __init__(self, beta=1e-6, channels = 64, in_size = 64, ksize = 7):
         super().__init__()
 
         self.in_size = in_size
-        self.bank_size = bank_size
+        self.bank_size = channels
         self.kernel = gaussianKernel
 
-        self.weights = torch.zeros((bank_size, bank_size, in_size, in_size))
-
         self.beta = beta
+
+        self.ksize = ksize
 
         self.initialize()
 
@@ -335,6 +335,7 @@ class GaussianDNBlock(nn.Module):
         params = torch.rand(self.bank_size, self.bank_size, 6)
 
         self.params = nn.Parameter(params, requires_grad = True)
+        self.beta = nn.Parameter(self.beta, requires_grad = True)
         # enable autograd to accumulate across params
 
 
@@ -342,17 +343,17 @@ class GaussianDNBlock(nn.Module):
 
         # NEEDS TO HAPPEN ON CPU!!!
 
-        weights = torch.zeros(self.bank_size, self.bank_size, self.in_size, self.in_size)
+        weights = torch.zeros(self.bank_size, self.bank_size, self.ksize, self.ksize)
 
-        x = torch.linspace(-1, 1, self.in_size, device="cpu")
-        params = self.params.to("cpu")
+        # x = torch.linspace(-1, 1, self.in_size, device="cpu")
+        # params = self.params.to("cpu")
 
         # I STILL EXPECT THIS TO BE VERY COSTLY.
         for i in range(self.bank_size):
             for j in range(self.bank_size):
-                weights[i][j] = self.kernel(*params[i][j], in_size=self.in_size)
+                weights[i][j] = self.kernel(*self.params[i][j], in_size=self.ksize)
 
-        self.weights = weights.to(device)
+        self.weights = weights
 
     
     def denominator(self,x):
@@ -365,10 +366,7 @@ class GaussianDNBlock(nn.Module):
         # re-computes the kernels accn. to current state of implicit
         # trainable parameters
 
-        expanded_images_tensor = x.unsqueeze(2)
-        result_tensor = self.weights * expanded_images_tensor
-        summed = torch.sum(result_tensor, dim=1)
-        summed = summed + self.beta
+        summed = F.conv2d(x, self.weights, padding = self.ksize // 2, stride = 1)
 
         return summed
 
@@ -616,13 +614,15 @@ class VOneBlockDN(VOneBlock):
     def __init__(self, sf, theta, sigx, sigy, phase,
                  k_exc=25, noise_mode=None, noise_scale=1, noise_level=1,
                  simple_channels=128, complex_channels=128, ksize=25, stride=4, input_size=224,
-                 cov_matrix = None, filters_r = None, filters_c = None, trainable = False):
+                 cov_matrix = None, filters_r = None, filters_c = None, trainable = False, paper_implementation = False):
 
         super().__init__(sf, theta, sigx, sigy, phase,
                  k_exc, noise_mode, noise_scale, noise_level,
                  simple_channels, complex_channels, ksize, stride, input_size)
 
-        if trainable:
+        if paper_implementation:
+            self.dn = GaussianDNBlock(...)
+        elif trainable:
             self.dn = DNBlockv2(channels=simple_channels+complex_channels)
         else:
             self.dn = DNBlock()
