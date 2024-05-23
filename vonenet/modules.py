@@ -321,7 +321,7 @@ class GaussianDNBlock(nn.Module):
         self.bank_size = channels
         self.kernel = gaussianKernel
 
-        self.beta = nn.Parameter(torch.tensor(beta), requires_grad = True)
+        self.bias = beta
 
         self.ksize = ksize
 
@@ -333,6 +333,8 @@ class GaussianDNBlock(nn.Module):
         # 512^2 kernels. scale, two means, two variances, rotation
         # = 6 parameters per kernel
         params = torch.rand(self.bank_size, self.bank_size, 6)
+
+        self.beta = nn.Parameter(torch.tensor(self.bias), requires_grad = True)
 
         self.params = nn.Parameter(params, requires_grad = True)
         # enable autograd to accumulate across params
@@ -620,7 +622,7 @@ class VOneBlockDN(VOneBlock):
                  simple_channels, complex_channels, ksize, stride, input_size)
 
         if paper_implementation:
-            self.dn = GaussianDNBlock(...)
+            self.dn = GaussianDNBlock(channels=simple_channels+complex_channels, in_size = input_size)
         elif trainable:
             self.dn = DNBlockv2(channels=simple_channels+complex_channels)
         else:
