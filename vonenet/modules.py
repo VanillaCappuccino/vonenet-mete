@@ -325,10 +325,10 @@ class GaussianDNBlock(nn.Module):
 
         self.ksize = ksize
 
-        self.initialize()
+        self.initialise()
 
 
-    def initialize(self):
+    def initialise(self):
 
         # 512^2 kernels. scale, two means, two variances, rotation
         # = 6 parameters per kernel
@@ -623,12 +623,13 @@ class VOneBlockDN(VOneBlock):
 
         if paper_implementation:
             self.dn = GaussianDNBlock(channels=simple_channels+complex_channels, in_size = input_size)
-        elif trainable:
-            self.dn = DNBlockv2(channels=simple_channels+complex_channels)
         else:
-            self.dn = DNBlock()
-
-        self.dn.initialise(cov_matrix)
+            if trainable:
+                self.dn = DNBlockv2(channels=simple_channels+complex_channels)
+            else:
+                self.dn = DNBlock()
+            
+            self.dn.initialise(cov_matrix)
 
         if filters_r:
             self.simple_conv_q0 = filters_r
