@@ -186,9 +186,9 @@ def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50, device = device):
     mu = torch.hstack([v,w])
 
     # x = np.arange(0, in_size)
-    x = torch.linspace(-1,1,in_size)
+    x = torch.linspace(-1,1,in_size).to(device)
 
-    x, y = torch.meshgrid(x, x).to(device)
+    x, y = torch.meshgrid(x, x)
 
     # print(x.device, theta.device)
 
