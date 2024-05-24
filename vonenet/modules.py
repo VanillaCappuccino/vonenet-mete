@@ -326,7 +326,7 @@ class GaussianDNBlock(nn.Module):
         self.bank_size = channels
         self.kernel = gaussianKernel
 
-        self.bias = beta
+        self.bias = nn.Parameter(torch.tensor(beta), requires_grad=True)
 
         self.ksize = ksize
 
@@ -341,7 +341,7 @@ class GaussianDNBlock(nn.Module):
 
         self.beta = nn.Parameter(torch.tensor(self.bias), requires_grad = True)
 
-        self.params = nn.Parameter(params, requires_grad = True)
+        self.kernel = nn.Parameter(params, requires_grad = True)
 
         self.computeCoefficients()
         # enable autograd to accumulate across params
@@ -366,17 +366,12 @@ class GaussianDNBlock(nn.Module):
     
     def denominator(self,x):
 
-        # neat trickery that enables weights matrix pointwise multiplication
-        # in the same fashion that the denominator sum is described
-        # in the original paper
+        trial = x.reshape(-1, np.prod(list(x.shape[1:])))
 
-        # self.computeCoefficients() # ???
-        # re-computes the kernels accn. to current state of implicit
-        # trainable parameters
+        div = self.kernel@trial.T
 
-        summed = F.conv2d(x, self.weights, padding = self.ksize // 2, stride = 1)
+        return div.T.reshape(x.shape)
 
-        return summed
 
     def forward(self,x):
 
@@ -629,7 +624,7 @@ class VOneBlockDN(VOneBlock):
                  simple_channels, complex_channels, ksize, stride, input_size)
 
         if paper_implementation:
-            self.dn = GaussianDNBlock(channels=simple_channels+complex_channels, in_size = input_size)
+            self.dn = GaussianDNBlock(channels=simple_channels+complex_channels, in_size = input_size, ksize = ksize)
         else:
             if trainable:
                 self.dn = DNBlockv2(channels=simple_channels+complex_channels)
