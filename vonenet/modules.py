@@ -375,8 +375,7 @@ class GaussianDNBlock(nn.Module):
     
     def denominator(self,x):
 
-        print(x.device, self.kernel.device)
-
+        # print(x.device, self.kernel.device)
 
         result = torch.einsum('abcd,bxcd->abcd', x, self.kernel)
 
