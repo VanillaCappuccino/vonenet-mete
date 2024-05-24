@@ -271,7 +271,7 @@ class DNBlockv2(nn.Module):
     # compute full expression
     # return
 
-    def __init__(self, beta=5.0, channels = 64):
+    def __init__(self, beta=1.0, channels = 64):
         super().__init__()
 
         self.kernel = None
