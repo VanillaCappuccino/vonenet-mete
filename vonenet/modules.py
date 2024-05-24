@@ -632,6 +632,9 @@ class VOneBlockDN(VOneBlock):
         else:
             if trainable:
                 self.dn = DNBlockv2(channels=simple_channels+complex_channels)
+
+                self.hidden_beta = self.dn.beta
+                self.hidden_params = self.dn.norm_mults
             else:
                 self.dn = DNBlock()
             

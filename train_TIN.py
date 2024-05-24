@@ -310,6 +310,11 @@ def train(save_train_epochs=.2,  # how often save output during training
                     if FLAGS.optimizer == 'plateauLR' and step == 0:
                         trainer.lr.step(results[validator.name]['loss'])
                     trainer.model.train()
+
+                    if FLAGS.paper_implementation:
+                        trainer.model[0].norm_mults.detach()
+                        trainer.model[0].beta.detach()
+
                     print('LR: ', trainer.optimizer.param_groups[0]["lr"])
 
             if FLAGS.output_path is not None:
@@ -424,7 +429,7 @@ class ImageNetTrain(object):
         # record['learning_rate'] = self.lr.get_lr()[0]
         record['learning_rate'] = self.optimizer.param_groups[0]["lr"]
         self.optimizer.zero_grad()
-        loss.backward(retain_graph = True)
+        loss.backward()
         self.optimizer.step()
 
         record['dur'] = time.time() - start
