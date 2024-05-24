@@ -347,7 +347,7 @@ class GaussianDNBlock(nn.Module):
 
         # NEEDS TO HAPPEN ON CPU!!!
 
-        weights = torch.zeros(self.bank_size, self.bank_size, self.ksize, self.ksize).to(device)
+        weights = torch.zeros(self.bank_size, self.bank_size, self.in_size, self.in_size).to(device)
 
         # x = torch.linspace(-1, 1, self.in_size, device="cpu")
         # params = self.params.to("cpu")
@@ -359,7 +359,7 @@ class GaussianDNBlock(nn.Module):
 
         print(weights.shape)
 
-        self.kernel = weights.reshape(self.channels * self.in_size**2, -1)
+        self.kernel = weights.reshape(self.bank_size * self.in_size**2, -1)
 
     
     def denominator(self,x):
@@ -622,7 +622,7 @@ class VOneBlockDN(VOneBlock):
                  simple_channels, complex_channels, ksize, stride, input_size)
 
         if paper_implementation:
-            self.dn = GaussianDNBlock(channels=simple_channels+complex_channels, in_size = input_size, ksize = ksize)
+            self.dn = GaussianDNBlock(channels=simple_channels+complex_channels, in_size = input_size)
         else:
             if trainable:
                 self.dn = DNBlockv2(channels=simple_channels+complex_channels)
