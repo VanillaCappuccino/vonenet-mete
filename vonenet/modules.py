@@ -188,7 +188,7 @@ def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50):
     mu = torch.hstack([v,w])
 
     # x = np.arange(0, in_size)
-    x = torch.linspace(-1,1,in_size).to(dvc)
+    x = torch.linspace(-1,1,in_size, device=dvc)
 
     # print(x.shape)
 
@@ -207,9 +207,9 @@ def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50):
 
     const = A / (2 * torch.pi * rho * sigma)
     
-    Sigma_inv = torch.inverse(Sigma, device = dvc)
+    Sigma_inv = torch.inverse(Sigma)
 
-    delta = torch.subtract(pos,mu, device=dvc)
+    delta = torch.subtract(pos,mu)
 
     fac = torch.einsum('...k,kl,...l->...', delta, Sigma_inv, delta)
 
