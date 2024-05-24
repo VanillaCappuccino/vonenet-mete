@@ -424,7 +424,7 @@ class ImageNetTrain(object):
         # record['learning_rate'] = self.lr.get_lr()[0]
         record['learning_rate'] = self.optimizer.param_groups[0]["lr"]
         self.optimizer.zero_grad()
-        loss.backward()
+        loss.backward(retain_graph = True)
         self.optimizer.step()
 
         record['dur'] = time.time() - start
