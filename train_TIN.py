@@ -312,8 +312,8 @@ def train(save_train_epochs=.2,  # how often save output during training
                     trainer.model.train()
 
                     if FLAGS.paper_implementation:
-                        trainer.model[0].norm_mults.detach()
-                        trainer.model[0].beta.detach()
+                        trainer.model[0].hidden_beta.detach()
+                        trainer.model[0].hidden_params.beta.detach()
 
                     print('LR: ', trainer.optimizer.param_groups[0]["lr"])
 
