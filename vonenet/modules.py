@@ -321,9 +321,11 @@ class DNBlockv2(nn.Module):
             
         if self.kernel != None:
 
-            den = self.div_smoother(self.denominator(x))
+            div = self.denominator(x)
 
-            den += self.beta
+            den = self.div_smoother(div)
+
+            den = den + self.beta
 
             return self.norm_smoother(x / den / self.norm_smoothing_coeff)
         
