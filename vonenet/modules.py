@@ -179,14 +179,14 @@ class VOneBlock(nn.Module):
 #     return const * torch.exp(-fac / 2)
         
 
-@torch.jit.script
-def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50, device: torch.device = torch.device(device)):
+# @torch.jit.script
+def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50):
 
-    Sigma = torch.diag(torch.hstack([rho, sigma])).to(device)
+    Sigma = torch.diag(torch.hstack([rho, sigma]))
     mu = torch.hstack([v,w]).to(device)
 
     # x = np.arange(0, in_size)
-    x = torch.linspace(-1,1,in_size).to(device)
+    x = torch.linspace(-1,1,in_size)
 
     # print(x.shape)
 
@@ -649,8 +649,6 @@ class VOneBlockDN(VOneBlock):
                 self.dn = DNBlock()
 
             self.dn.initialise(cov_matrix=cov_matrix, requires_grad=trainable)
-
-        self.dn.to(device)
 
         if filters_r != None:
             self.simple_conv_q0 = filters_r
