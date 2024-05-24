@@ -175,7 +175,7 @@ for ind in positions:
     plt.tight_layout()
 
     # Show the plot
-    plt.savefig(f"cov_matrix_rfs/{ind}.png")
+    plt.savefig(f"plots/cov_matrix_rfs/{ind}.png")
 
 
 beta = nn.Parameter(torch.tensor(1.0), requires_grad=True).to(device)
@@ -218,7 +218,7 @@ for btc in range(25):
     plt.tight_layout()
 
     # Show the plot
-    plt.savefig(f"denominators/denominator_{btc}.png")
+    plt.savefig(f"plots/denominators/denominator_{btc}.png")
 
 
 covved = outputs_inter / (res + beta)
@@ -247,4 +247,4 @@ for btc in range(25):
     plt.tight_layout()
 
     # Show the plot
-    plt.savefig(f"normed/normed{btc}.png")
+    plt.savefig(f"plots/normed/normed{btc}.png")
