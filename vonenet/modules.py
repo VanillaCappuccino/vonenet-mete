@@ -630,7 +630,7 @@ class VOneBlockDN(VOneBlock):
         if paper_implementation:
             self.dn = GaussianDNBlock(channels=simple_channels+complex_channels, in_size = input_size, stride=stride)
             self.hidden_beta = self.dn.bias
-            self.hidden_params = self.dn.norm_mults 
+            self.hidden_params = self.dn.params 
         else:
             if trainable:
                 print("v2")
