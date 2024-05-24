@@ -229,7 +229,7 @@ class DNBlock(nn.Module):
 
         self.beta = beta
 
-    def initialise(self, cov_matrix):
+    def initialise(self, cov_matrix, requires_grad = False):
 
         self.kernel = cov_matrix
 
@@ -270,16 +270,20 @@ class DNBlockv2(nn.Module):
 
         self.kernel = None
 
-        self.beta = nn.Parameter(torch.tensor(beta), requires_grad=False)
+        self.beta = torch.tensor(beta)
 
         self.channels = channels
 
         norm_mults = torch.zeros(channels, channels) * 1 / channels**2
 
-        self.norm_mults = nn.Parameter(torch.tensor(norm_mults), requires_grad=False)
+        self.norm_mults = torch.tensor(norm_mults)
 
         
-    def initialise(self, cov_matrix):
+    def initialise(self, cov_matrix, requires_grad = False):
+        
+        self.norm_mults = nn.Parameter(torch.tensor(self.norm_mults), requires_grad=requires_grad)
+        
+        self.beta = nn.Parameter(torch.tensor(self.beta), requires_grad=requires_grad)
 
         self.kernel = cov_matrix
 
@@ -328,20 +332,21 @@ class GaussianDNBlock(nn.Module):
         self.bank_size = channels
         self.kernel = gaussianKernel
 
-        self.bias = nn.Parameter(torch.tensor(beta), requires_grad=True).to(device)
+        self.params = torch.rand(self.bank_size, self.bank_size, 6)
+
+        self.bias = torch.tensor(beta)
 
         # self.ksize = ksize
-
-        self.initialise()
 
 
     def initialise(self):
 
         # 512^2 kernels. scale, two means, two variances, rotation
         # = 6 parameters per kernel
-        self.params = torch.rand(self.bank_size, self.bank_size, 6)
 
-        self.params = nn.Parameter(self.params, requires_grad=True).to(device)
+        self.bias = nn.Parameter(self.bias, requires_grad=True)
+        
+        self.params = nn.Parameter(self.params, requires_grad=True)
 
         self.computeCoefficients()
         # enable autograd to accumulate across params
@@ -628,17 +633,22 @@ class VOneBlockDN(VOneBlock):
                  simple_channels, complex_channels, ksize, stride, input_size)
 
         if paper_implementation:
+            
             self.dn = GaussianDNBlock(channels=simple_channels+complex_channels, in_size = input_size, stride=stride)
+            
             self.hidden_beta = self.dn.bias
             self.hidden_params = self.dn.params 
+
+            self.dn.initialise()
         else:
             if trainable:
                 print("v2")
                 self.dn = DNBlockv2(channels=simple_channels+complex_channels)
+
             else:
                 self.dn = DNBlock()
-            
-            self.dn.initialise(cov_matrix)
+
+            self.dn.initialise(cov_matrix=cov_matrix, requires_grad=trainable)
 
         self.dn.to(device)
 
