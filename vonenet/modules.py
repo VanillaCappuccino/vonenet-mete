@@ -179,14 +179,16 @@ class VOneBlock(nn.Module):
 #     return const * torch.exp(-fac / 2)
         
 
-# @torch.jit.script
+@torch.jit.script
 def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50):
+
+    dvc = theta.device
 
     Sigma = torch.diag(torch.hstack([rho, sigma]))
     mu = torch.hstack([v,w])
 
     # x = np.arange(0, in_size)
-    x = torch.linspace(-1,1,in_size)
+    x = torch.linspace(-1,1,in_size).to(dvc)
 
     # print(x.shape)
 
