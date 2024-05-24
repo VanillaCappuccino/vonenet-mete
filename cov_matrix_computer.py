@@ -218,13 +218,11 @@ for step, data in enumerate(tqdm.tqdm(train_data)):
 
         p1 = outputs.reshape(-1, cov_dim)
 
-        term1 = p1.T @ p1 / data[1].shape[0]
+        m1 = torch.mean(p1, dim=0).reshape(-1,1)
 
-        m1 = torch.mean(p1, dim=0)
-        m1.shape
-        mn = torch.outer(m1, m1)
+        pn = p1-m1
 
-        cov_matrix += term1 - mn
+        cov_matrix += pn@pn.T / data[1].shape[0]
 
         if device == "cuda":
             torch.cuda.empty_cache()
