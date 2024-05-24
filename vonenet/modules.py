@@ -349,27 +349,30 @@ class GaussianDNBlock(nn.Module):
 
         # NEEDS TO HAPPEN ON CPU!!!
 
-        weights = torch.zeros(self.bank_size*self.in_size*self.in_size, self.bank_size, self.in_size, self.in_size).to(device)
+        weights = torch.zeros(self.bank_size, self.bank_size, self.in_size, self.in_size).to(device)
 
         # x = torch.linspace(-1, 1, self.in_size, device="cpu")
         # params = self.params.to("cpu")
 
         # I STILL EXPECT THIS TO BE VERY COSTLY.
 
-        for i in range(self.bank_size*self.in_size*self.in_size):
+        for i in range(self.bank_size):
             for j in range(self.bank_size):
                 weights[i][j] = self.kernel(*self.params[i][j], in_size=self.in_size)
         
-        self.kernel = weights.reshape(self.bank_size * self.in_size * self.in_size, -1)
-
+        self.kernel = weights
     
     def denominator(self,x):
 
-        trial = x.reshape(-1, np.prod(list(x.shape[1:])))
+        result = torch.einsum('abcd,bxcd->abcd', x, self.kernel)
 
-        div = self.kernel@trial.T
+        return result
 
-        return div.T.reshape(x.shape)
+        # trial = x.reshape(-1, np.prod(list(x.shape[1:])))
+
+        # div = self.kernel@trial.T
+
+        # return div.T.reshape(x.shape)
 
 
     def forward(self,x):
