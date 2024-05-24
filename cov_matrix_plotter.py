@@ -28,9 +28,9 @@ image_size = 64
 sf_min = 0.5
 sf_max = 11.2
 
-images = False
-gabors = False
-cov_matrix_rfs = False
+images = True
+gabors = True
+cov_matrix_rfs = True
 denominators = True
 normed = True
 
@@ -119,7 +119,7 @@ if gabors:
     sz = outputs_inter.shape[1]
     btc = 0 # index of img in batch
 
-    for btc in range(25):
+    for btc in tqdm.tqdm(range(16)):
         rows = int(np.sqrt(sz))
         fil = outputs_inter[btc][:sz,::]
         print(fil.shape)
@@ -131,7 +131,7 @@ if gabors:
 
         print("Plotting gabor outputs.")
         # Loop through each subplot and plot the heatmap
-        for i, ax in tqdm.tqdm(enumerate(axes)):
+        for i, ax in enumerate(axes):
             if i < rows * rows:
                 ax.imshow(fil[i].to("cpu"))
             else:
@@ -153,7 +153,7 @@ u = np.arange(0,dimm**2).reshape(dimm,dimm)
 positions = [u[pos[0]][pos[1]] for pos in inds]
 
 if cov_matrix_rfs:
-    for ind in positions:
+    for ind in tqdm.tqdm(positions):
 
         shift = np.random.choice(np.arange(-3,3)) * image_size//stride + np.random.choice(np.arange(-4*image_size//stride//7, +4*image_size//stride//7))
 
@@ -172,7 +172,7 @@ if cov_matrix_rfs:
         print("Plotting receptive fields")
 
         # Loop through each subplot and plot the heatmap
-        for i, ax in tqdm.tqdm(enumerate(axes)):
+        for i, ax in enumerate(axes):
             if i < rows * rows:
                 sns.heatmap(fil[i].to("cpu"), ax=ax, cmap="viridis", cbar=False)
             else:
@@ -201,7 +201,7 @@ res = div.T.reshape(outputs_inter.shape)
 sz = res.shape[1]
 
 
-for btc in range(25):
+for btc in tqdm.tqdm(range(25)):
 
     rows = int(np.sqrt(sz))
     fil = res[btc][:sz,::]
@@ -215,7 +215,7 @@ for btc in range(25):
     print("Plotting denominators")
 
     # Loop through each subplot and plot the heatmap
-    for i, ax in tqdm.tqdm(enumerate(axes)):
+    for i, ax in enumerate(axes):
         if i < rows * rows:
             sns.heatmap(fil[i].detach().to("cpu"), ax = ax, square = True)
         else:
@@ -230,7 +230,7 @@ for btc in range(25):
 
 covved = outputs_inter / (res + beta)
 
-for btc in range(25):
+for btc in tqdm.tqdm(range(16)):
 
     rows = int(np.sqrt(sz))
     fil = covved[btc][:sz,::]
@@ -244,7 +244,7 @@ for btc in range(25):
     print("Plotting norm results")
 
     # Loop through each subplot and plot the heatmap
-    for i, ax in tqdm.tqdm(enumerate(axes)):
+    for i, ax in enumerate(axes):
         if i < rows * rows:
             sns.heatmap(fil[i].detach().to("cpu"), ax = ax, square = True)
         else:
