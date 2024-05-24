@@ -201,15 +201,15 @@ def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50):
     x_rot = x * torch.cos(theta) + y * torch.sin(theta)
     y_rot = -x * torch.sin(theta) + y * torch.cos(theta)
 
-    pos = torch.zeros(x_rot.shape + (2,))
+    pos = torch.zeros(x_rot.shape + (2,), device=dvc)
     pos[:, :, 0] = x_rot
     pos[:, :, 1] = y_rot
 
     const = A / (2 * torch.pi * rho * sigma)
     
-    Sigma_inv = torch.inverse(Sigma)
+    Sigma_inv = torch.inverse(Sigma, device = dvc)
 
-    delta = torch.subtract(pos,mu)
+    delta = torch.subtract(pos,mu, device=dvc)
 
     fac = torch.einsum('...k,kl,...l->...', delta, Sigma_inv, delta)
 
