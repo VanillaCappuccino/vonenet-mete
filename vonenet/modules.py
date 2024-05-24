@@ -183,7 +183,7 @@ class VOneBlock(nn.Module):
 def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50):
 
     Sigma = torch.diag(torch.hstack([rho, sigma]))
-    mu = torch.hstack([v,w]).to(device)
+    mu = torch.hstack([v,w])
 
     # x = np.arange(0, in_size)
     x = torch.linspace(-1,1,in_size)
@@ -193,6 +193,8 @@ def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50):
     x, y = torch.meshgrid(x, x)
 
     # print(x.device, theta.device)
+
+    print(x.device, theta.device)
 
     x_rot = x * torch.cos(theta) + y * torch.sin(theta)
     y_rot = -x * torch.sin(theta) + y * torch.cos(theta)
