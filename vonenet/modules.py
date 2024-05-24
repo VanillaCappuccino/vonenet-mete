@@ -88,12 +88,12 @@ class VOneBlock(nn.Module):
 
     def forward(self, x):
         # Gabor activations [Batch, out_channels, H/stride, W/stride]
-        x = self.gabors_f(x)
+        y = self.gabors_f(x)
         # Noise [Batch, out_channels, H/stride, W/stride]
-        x = self.noise_f(x)
+        z = self.noise_f(y)
         # V1 Block output: (Batch, out_channels, H/stride, W/stride)
-        x = self.output(x)
-        return x
+        t = self.output(z)
+        return t
 
     def gabors_f(self, x):
         s_q0 = self.simple_conv_q0(x)
