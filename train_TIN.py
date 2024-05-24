@@ -11,7 +11,7 @@ import torchvision
 from vonenet import get_model, barebones_model, get_dn_model
 
 
-# torch.autograd.set_detect_anomaly(True)
+torch.autograd.set_detect_anomaly(True)
 
 parser = argparse.ArgumentParser(description='Tiny ImageNet Training')
 ## General parameters
