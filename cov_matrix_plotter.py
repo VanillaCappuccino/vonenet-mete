@@ -28,6 +28,12 @@ image_size = 64
 sf_min = 0.5
 sf_max = 11.2
 
+images = False
+gabors = False
+cov_matrix_rfs = False
+denominators = True
+normed = True
+
 if torch.cuda.is_available():
     device = "cuda"
 elif torch.backends.mps.is_built():
@@ -47,9 +53,9 @@ FLAGS, FIRE_FLAGS = parser.parse_known_args()
 
 output_path = FLAGS.cov_path
 
-cov_matrix = torch.load(output_path+"/cov_matrix.pt")
-filters_r = torch.load(output_path+"/real_filters.pt")
-filters_c = torch.load(output_path+"/imaginary_filters.pt")
+cov_matrix = torch.load(output_path+"/cov_matrix.pt").to(device)
+filters_r = torch.load(output_path+"/real_filters.pt").to(device)
+filters_c = torch.load(output_path+"/imaginary_filters.pt").to(device)
 
 def data():
     dataset = torchvision.datasets.ImageFolder(
@@ -77,27 +83,27 @@ for step, dt in enumerate(train_data):
         first_sample = dt
         break
 
+if images:
+    # Create a figure and axis object using Matplotlib
+    cnt = 25
+    rows = int(np.sqrt(cnt))
 
-# Create a figure and axis object using Matplotlib
-cnt = 25
-rows = int(np.sqrt(cnt))
+    fig, axes = plt.subplots(rows, rows, figsize = (2*rows,2*rows))
 
-fig, axes = plt.subplots(rows, rows, figsize = (2*rows,2*rows))
+    # Flatten the axes array to make it easier to iterate over
+    axes = axes.flatten()
 
-# Flatten the axes array to make it easier to iterate over
-axes = axes.flatten()
+    # Loop through each subplot and plot the heatmap
+    for i, ax in enumerate(axes):
 
-# Loop through each subplot and plot the heatmap
-for i, ax in enumerate(axes):
+        img = first_sample[0][i].permute(1,2,0)
+        ax.imshow(img)
 
-    img = first_sample[0][i].permute(1,2,0)
-    ax.imshow(img)
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
 
-# Adjust layout to prevent overlap
-plt.tight_layout()
-
-# Show the plot
-plt.savefig("plots/images/first_sample_images.png")
+    # Show the plot
+    plt.savefig("plots/images/first_sample_images.png")
 
 # Generate intermediate outputs
 
@@ -109,32 +115,33 @@ voneblockdn = vondn[0]
 
 outputs_inter = voneblockdn.gabors_f(first_sample[0].to(device))
 
-sz = outputs_inter.shape[1]
-btc = 0 # index of img in batch
+if gabors:
+    sz = outputs_inter.shape[1]
+    btc = 0 # index of img in batch
 
-for btc in range(25):
-    rows = int(np.sqrt(sz))
-    fil = outputs_inter[btc][:sz,::]
-    print(fil.shape)
-    # Create a figure and axis object using Matplotlib
-    fig, axes = plt.subplots(rows, rows, figsize=(2*rows, 2*rows))
+    for btc in range(25):
+        rows = int(np.sqrt(sz))
+        fil = outputs_inter[btc][:sz,::]
+        print(fil.shape)
+        # Create a figure and axis object using Matplotlib
+        fig, axes = plt.subplots(rows, rows, figsize=(2*rows, 2*rows))
 
-    # Flatten the axes array to make it easier to iterate over
-    axes = axes.flatten()
+        # Flatten the axes array to make it easier to iterate over
+        axes = axes.flatten()
 
-    print("Plotting gabor outputs.")
-    # Loop through each subplot and plot the heatmap
-    for i, ax in tqdm.tqdm(enumerate(axes)):
-        if i < rows * rows:
-            ax.imshow(fil[i].to("cpu"))
-        else:
-            ax.axis('off')  # Turn off axis for empty subplots
+        print("Plotting gabor outputs.")
+        # Loop through each subplot and plot the heatmap
+        for i, ax in tqdm.tqdm(enumerate(axes)):
+            if i < rows * rows:
+                ax.imshow(fil[i].to("cpu"))
+            else:
+                ax.axis('off')  # Turn off axis for empty subplots
 
-    # Adjust layout to prevent overlap
-    plt.tight_layout()
+        # Adjust layout to prevent overlap
+        plt.tight_layout()
 
-    # Show the plot
-    plt.savefig(f"plots/gabors/gabor_outputs_{btc}.png")
+        # Show the plot
+        plt.savefig(f"plots/gabors/gabor_outputs_{btc}.png")
 
 dimm = image_size // stride
 rho = dimm // 2
@@ -145,37 +152,37 @@ shift = np.random.choice([-1,1])
 u = np.arange(0,dimm**2).reshape(dimm,dimm)
 positions = [u[pos[0]][pos[1]] for pos in inds]
 
+if cov_matrix_rfs:
+    for ind in positions:
 
-for ind in positions:
+        shift = np.random.choice(np.arange(-3,3)) * image_size//stride + np.random.choice(np.arange(-4*image_size//stride//7, +4*image_size//stride//7))
 
-    shift = np.random.choice(np.arange(-3,3)) * image_size//stride + np.random.choice(np.arange(-4*image_size//stride//7, +4*image_size//stride//7))
+        covvies = cov_matrix[ind].reshape(simple_channels+complex_channels, image_size//stride, image_size//stride)
 
-    covvies = cov_matrix[ind].reshape(simple_channels+complex_channels, image_size//stride, image_size//stride)
+        sz = covvies.shape[0]
 
-    sz = covvies.shape[0]
+        rows = int(np.sqrt(sz))
+        fil = covvies
+        # Create a figure and axis object using Matplotlib
+        fig, axes = plt.subplots(rows, rows, figsize=(2*rows, 2*rows))
 
-    rows = int(np.sqrt(sz))
-    fil = covvies
-    # Create a figure and axis object using Matplotlib
-    fig, axes = plt.subplots(rows, rows, figsize=(2*rows, 2*rows))
+        # Flatten the axes array to make it easier to iterate over
+        axes = axes.flatten()
 
-    # Flatten the axes array to make it easier to iterate over
-    axes = axes.flatten()
+        print("Plotting receptive fields")
 
-    print("Plotting receptive fields")
+        # Loop through each subplot and plot the heatmap
+        for i, ax in tqdm.tqdm(enumerate(axes)):
+            if i < rows * rows:
+                sns.heatmap(fil[i].to("cpu"), ax=ax, cmap="viridis", cbar=False)
+            else:
+                ax.axis('off')  # Turn off axis for empty subplots
 
-    # Loop through each subplot and plot the heatmap
-    for i, ax in tqdm.tqdm(enumerate(axes)):
-        if i < rows * rows:
-            sns.heatmap(fil[i].to("cpu"), ax=ax, cmap="viridis", cbar=False)
-        else:
-            ax.axis('off')  # Turn off axis for empty subplots
+        # Adjust layout to prevent overlap
+        plt.tight_layout()
 
-    # Adjust layout to prevent overlap
-    plt.tight_layout()
-
-    # Show the plot
-    plt.savefig(f"plots/cov_matrix_rfs/{ind}.png")
+        # Show the plot
+        plt.savefig(f"plots/cov_matrix_rfs/{ind}.png")
 
 
 beta = nn.Parameter(torch.tensor(1.0), requires_grad=True).to(device)
