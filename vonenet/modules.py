@@ -280,7 +280,7 @@ class DNBlockv2(nn.Module):
 
         self.channels = channels
 
-        norm_mults = torch.zeros(channels, channels) * 1 / channels**2
+        norm_mults = torch.zeros(channels, channels)
 
         self.norm_mults = torch.tensor(norm_mults)
 
@@ -301,7 +301,10 @@ class DNBlockv2(nn.Module):
     def denominator(self,x):
 
         inter = x.permute(0,3,2,1)
-        result = torch.einsum('bxyc,cd->bxyc', inter, self.norm_mults)
+
+        norm_mults = self.norm_smoother(self.norm_mults)
+
+        result = torch.einsum('bxyc,cd->bxyc', inter, norm_mults)
 
         result = result.permute(0, 3, 1, 2)
 
