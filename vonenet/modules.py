@@ -321,16 +321,16 @@ class GaussianDNBlock(nn.Module):
     # compute full expression
     # return
 
-    def __init__(self, beta=0.0001, channels = 64, in_size = 32, ksize = 32):
+    def __init__(self, beta=0.0001, channels = 64, in_size = 64, stride = 2):
         super().__init__()
 
-        self.in_size = in_size
+        self.in_size = in_size // stride
         self.bank_size = channels
         self.kernel = gaussianKernel
 
         self.bias = nn.Parameter(torch.tensor(beta), requires_grad=True)
 
-        self.ksize = ksize
+        # self.ksize = ksize
 
         self.initialise()
 
@@ -361,8 +361,6 @@ class GaussianDNBlock(nn.Module):
                 weights[i][j] = self.kernel(*self.params[i][j], in_size=self.in_size)
 
         print(self.bank_size, self.in_size)
-
-        raise(ValueError)
         
         self.kernel = weights.reshape(self.bank_size * self.in_size, -1)
 
@@ -627,7 +625,7 @@ class VOneBlockDN(VOneBlock):
                  simple_channels, complex_channels, ksize, stride, input_size)
 
         if paper_implementation:
-            self.dn = GaussianDNBlock(channels=simple_channels+complex_channels, in_size = input_size)
+            self.dn = GaussianDNBlock(channels=simple_channels+complex_channels, in_size = input_size, stride=stride)
         else:
             if trainable:
                 self.dn = DNBlockv2(channels=simple_channels+complex_channels)
