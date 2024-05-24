@@ -223,7 +223,7 @@ def load_model():
                 complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
                 noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc,
                 cov_matrix = cov_matrix, filters_r = filters_r, filters_c = filters_c, trainable = FLAGS.trainable_vonenetdn,
-                paper_implementation = FLAGS.paper_implementation)
+                paper_implementation = FLAGS.paper_implementation, image_size = FLAGS.image_size)
     else:
         model = get_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
                       visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
