@@ -194,7 +194,7 @@ def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50):
 
     # print(x.device, theta.device)
 
-    print(x.device, theta.device)
+    print(x.device, theta.device, Sigma.device, mu.device)
 
     x_rot = x * torch.cos(theta) + y * torch.sin(theta)
     y_rot = -x * torch.sin(theta) + y * torch.cos(theta)
@@ -346,9 +346,9 @@ class GaussianDNBlock(nn.Module):
         # 512^2 kernels. scale, two means, two variances, rotation
         # = 6 parameters per kernel
 
-        self.bias = nn.Parameter(self.bias, requires_grad=True).to(device)
+        self.bias = nn.Parameter(self.bias, requires_grad=True)
         
-        self.params = nn.Parameter(self.params, requires_grad=True).to(device)
+        self.params = nn.Parameter(self.params, requires_grad=True)
 
         self.computeCoefficients()
         # enable autograd to accumulate across params
