@@ -230,6 +230,8 @@ class DNBlock(nn.Module):
         super().__init__()
 
         self.kernel = None
+        self.norm_smoother = nn.Tanh()
+        self.norm_smoothing_coeff = 1.0
 
         self.beta = beta
 
@@ -255,7 +257,7 @@ class DNBlock(nn.Module):
 
             den += self.beta
 
-            return x / den
+            return self.norm_smoother(x / den)
         
         else:
 
@@ -281,6 +283,9 @@ class DNBlockv2(nn.Module):
         norm_mults = torch.zeros(channels, channels) * 1 / channels**2
 
         self.norm_mults = torch.tensor(norm_mults)
+
+        self.norm_smoother = nn.Tanh()
+        self.norm_smoothing_coeff = 1.0
 
         
     def initialise(self, cov_matrix, requires_grad = False):
@@ -314,7 +319,7 @@ class DNBlockv2(nn.Module):
 
             den += self.beta
 
-            return x / den
+            return self.norm_smoother(x / den / self.norm_smoothing_coeff)
         
         else:
 
