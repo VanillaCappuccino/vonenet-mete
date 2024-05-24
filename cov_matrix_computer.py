@@ -217,9 +217,9 @@ for step, data in enumerate(tqdm.tqdm(train_data)):
         
         outputs = voneblock.forward(data[0].to(device))
 
-        p1 = outputs.reshape(-1, cov_dim)
+        p1 = outputs.reshape(-1, cov_dim).T
 
-        m1 = torch.mean(p1, dim=0).reshape(-1,1)
+        m1 = torch.mean(p1, dim=1).reshape(-1,1)
 
         pn = p1-m1
 
