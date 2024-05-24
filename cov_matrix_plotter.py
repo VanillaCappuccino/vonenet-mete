@@ -150,7 +150,7 @@ for ind in positions:
 
     shift = np.random.choice(np.arange(-3,3)) * image_size//stride + np.random.choice(np.arange(-4*image_size//stride//7, +4*image_size//stride//7))
 
-    covvies = cov_matrix[ind].reshape(16, image_size//stride, image_size//stride)
+    covvies = cov_matrix[ind].reshape(simple_channels+complex_channels, image_size//stride, image_size//stride)
 
     sz = covvies.shape[0]
 
