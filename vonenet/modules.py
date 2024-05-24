@@ -194,7 +194,7 @@ def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50):
 
     # print(x.device, theta.device)
 
-    print(x.device, theta.device, Sigma.device, mu.device)
+    # print(x.device, theta.device, Sigma.device, mu.device)
 
     x_rot = x * torch.cos(theta) + y * torch.sin(theta)
     y_rot = -x * torch.sin(theta) + y * torch.cos(theta)
