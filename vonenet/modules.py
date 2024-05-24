@@ -341,7 +341,7 @@ class GaussianDNBlock(nn.Module):
         # = 6 parameters per kernel
         self.params = torch.rand(self.bank_size, self.bank_size, 6)
 
-        self.params = nn.Parameter(self.params, requires_grad=True)
+        self.params = nn.Parameter(self.params, requires_grad=True).to(device)
 
         self.computeCoefficients()
         # enable autograd to accumulate across params
