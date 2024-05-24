@@ -375,6 +375,8 @@ class GaussianDNBlock(nn.Module):
 
         print(x.device, self.kernel.device)
 
+        raise(ValueError)
+
         result = torch.einsum('abcd,bxcd->abcd', x, self.kernel)
 
         return result
