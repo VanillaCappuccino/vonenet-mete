@@ -99,6 +99,7 @@ def set_gpus(n=2):
     else:
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
+mps = False
 
 if FLAGS.ngpus > 0:
     print("Setting GPUs.")
