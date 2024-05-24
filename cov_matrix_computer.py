@@ -42,6 +42,8 @@ parser.add_argument('--complex_channels', default=32, type=int,
                     help='number of complex channels in V1 block')
 parser.add_argument('--gabor_seed', default=0, type=int,
                     help='seed for gabor initialization')
+parser.add_argument('--num_workers', default=16, type=int,
+                    help='Number of workers')
 
 parser.add_argument('--rgb_seed', default=0, type=int,
                     help='seed for gabor initialization')
@@ -67,7 +69,7 @@ parser.add_argument('--noise_scale', default=1, type=float,
                     help='noise scale factor')
 parser.add_argument('--noise_level', default=1, type=float,
                     help='noise level')
-
+parser.add_argument("--l2_norm", action="store_true", help = "Normalise Gabor outputs by L2 norms.")
 
 
 parser.add_argument('--device', choices=['cpu', 'mps', 'cuda'], default='cpu',
@@ -199,7 +201,7 @@ def data():
     data_loader = torch.utils.data.DataLoader(dataset,
                                                 batch_size=batch_size,
                                                 shuffle=True,
-                                                num_workers=16,
+                                                num_workers=FLAGS.num_workers,
                                                 pin_memory=True)
 
     return data_loader
@@ -216,6 +218,9 @@ for step, data in enumerate(tqdm.tqdm(train_data)):
     with torch.no_grad():
         
         outputs = voneblock.forward(data[0].to(device))
+
+        if FLAGS.l2_norm:
+            outputs = F.normalize(outputs, p=2, dim=1)
 
         p1 = outputs.reshape(-1, cov_dim).T
 
