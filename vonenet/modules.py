@@ -32,7 +32,7 @@ class GFB(nn.Module):
         self.padding = (kernel_size // 2, kernel_size // 2)
 
         # Param instatiations
-        self.holder = torch.zeros((out_channels, in_channels, kernel_size, kernel_size))
+        self.weight = torch.zeros((out_channels, in_channels, kernel_size, kernel_size))
 
     def forward(self, x):
         return F.conv2d(x, self.weight, None, self.stride, self.padding)
@@ -42,9 +42,9 @@ class GFB(nn.Module):
         random_channel = torch.randint(0, self.in_channels, (self.out_channels,))
         self.random_channel = random_channel
         for i in range(self.out_channels):
-            self.holder[i, random_channel[i]] = gabor_kernel(frequency=sf[i], sigma_x=sigx[i], sigma_y=sigy[i],
+            self.weight[i, random_channel[i]] = gabor_kernel(frequency=sf[i], sigma_x=sigx[i], sigma_y=sigy[i],
                                                              theta=theta[i], offset=phase[i], ks=self.kernel_size[0])
-        self.weight = nn.Parameter(self.holder, requires_grad=True)
+        self.weight = nn.Parameter(self.weight, requires_grad=False)
 
 
 class VOneBlock(nn.Module):
@@ -88,12 +88,12 @@ class VOneBlock(nn.Module):
 
     def forward(self, x):
         # Gabor activations [Batch, out_channels, H/stride, W/stride]
-        y = self.gabors_f(x)
+        x = self.gabors_f(x)
         # Noise [Batch, out_channels, H/stride, W/stride]
-        z = self.noise_f(y)
+        x = self.noise_f(x)
         # V1 Block output: (Batch, out_channels, H/stride, W/stride)
-        t = self.output(z)
-        return t
+        x = self.output(x)
+        return x
 
     def gabors_f(self, x):
         s_q0 = self.simple_conv_q0(x)
