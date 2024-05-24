@@ -188,7 +188,7 @@ def gaussianKernel(theta, v, w, rho, sigma, A, in_size:int=50, device: torch.dev
     # x = np.arange(0, in_size)
     x = torch.linspace(-1,1,in_size).to(device)
 
-    print(x.shape)
+    # print(x.shape)
 
     x, y = torch.meshgrid(x, x)
 
@@ -356,7 +356,7 @@ class GaussianDNBlock(nn.Module):
 
         # I STILL EXPECT THIS TO BE VERY COSTLY.
 
-        print(weights.shape)
+        print(weights.shape, self.in_size)
 
         for i in range(self.bank_size):
             for j in range(self.bank_size):
