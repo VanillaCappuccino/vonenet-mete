@@ -360,7 +360,11 @@ class GaussianDNBlock(nn.Module):
             for j in range(self.bank_size):
                 weights[i][j] = self.kernel(*self.params[i][j], in_size=self.in_size)
 
-        self.kernel = weights.reshape(self.bank_size * self.in_size**2, -1)
+        print(self.bank_size, self.in_size)
+
+        raise(ValueError)
+        
+        self.kernel = weights.reshape(self.bank_size * self.in_size, -1)
 
     
     def denominator(self,x):
