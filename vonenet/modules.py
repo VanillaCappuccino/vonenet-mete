@@ -286,7 +286,7 @@ class DNBlockv2(nn.Module):
         self.norm_mults = torch.tensor(norm_mults)
 
         # self.norm_smoother = nn.Tanh()
-        self.div_smoother = F.relu()
+        self.div_smoother = F.relu
         self.norm_smoother = Identity()
         self.norm_smoothing_coeff = 1.0
 
