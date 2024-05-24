@@ -7,6 +7,12 @@ import tqdm
 import seaborn as sns
 import matplotlib.pyplot as plt
 import cv2
+
+import numpy as np
+import torch
+from torch import nn
+from torch.nn import functional as F
+
 from vonenet.vonenet import VOneNetDN
 
 batch_size = 128
@@ -116,8 +122,9 @@ for btc in range(25):
     # Flatten the axes array to make it easier to iterate over
     axes = axes.flatten()
 
+    print("Plotting gabor outputs.")
     # Loop through each subplot and plot the heatmap
-    for i, ax in enumerate(axes):
+    for i, ax in tqdm.tqdm(enumerate(axes)):
         if i < rows * rows:
             ax.imshow(fil[i].to("cpu"))
         else:
@@ -133,13 +140,16 @@ dimm = image_size // stride
 rho = dimm // 2
 
 inds = np.int64(np.random.multivariate_normal([rho,rho], [[rho,0],[0,rho]], 10))
+shift = np.random.choice([-1,1])
 
 u = np.arange(0,dimm**2).reshape(dimm,dimm)
 positions = [u[pos[0]][pos[1]] for pos in inds]
 
 
-
 for ind in positions:
+
+    shift = np.random.choice(np.arange(-3,3)) * image_size//stride + np.random.choice(np.arange(-4*image_size//stride//7, +4*image_size//stride//7))
+
     covvies = cov_matrix[ind].reshape(16, image_size//stride, image_size//stride)
 
     sz = covvies.shape[0]
@@ -152,8 +162,10 @@ for ind in positions:
     # Flatten the axes array to make it easier to iterate over
     axes = axes.flatten()
 
+    print("Plotting receptive fields")
+
     # Loop through each subplot and plot the heatmap
-    for i, ax in enumerate(axes):
+    for i, ax in tqdm.tqdm(enumerate(axes)):
         if i < rows * rows:
             sns.heatmap(fil[i].to("cpu"), ax=ax, cmap="viridis", cbar=False)
         else:
@@ -166,3 +178,73 @@ for ind in positions:
     plt.savefig(f"cov_matrix_rfs/{ind}.png")
 
 
+beta = nn.Parameter(torch.tensor(1.0), requires_grad=True).to(device)
+cc = simple_channels+complex_channels
+cxc = torch.tensor(torch.rand(cc, cc)) / 0.5 / 1e4
+norm_mults = nn.Parameter(cxc, requires_grad=True).to(device)
+
+inter = outputs_inter.permute(0,3,2,1)
+result = torch.einsum('bxyc,cd->bxyc', inter, norm_mults)
+result = result.permute(0, 3, 1, 2)
+
+trial = result.reshape(-1, np.prod(list(result.shape[1:])))
+div = cov_matrix@trial.T
+res = div.T.reshape(outputs_inter.shape)
+
+sz = res.shape[1]
+
+
+for btc in range(25):
+
+    rows = int(np.sqrt(sz))
+    fil = res[btc][:sz,::]
+
+    # Create a figure and axis object using Matplotlib
+    fig, axes = plt.subplots(rows, rows, figsize=(4*rows, 4*rows))
+
+    # Flatten the axes array to make it easier to iterate over
+    axes = axes.flatten()
+
+    print("Plotting denominators")
+
+    # Loop through each subplot and plot the heatmap
+    for i, ax in tqdm.tqdm(enumerate(axes)):
+        if i < rows * rows:
+            sns.heatmap(fil[i].detach().to("cpu"), ax = ax, square = True)
+        else:
+            ax.axis('off')  # Turn off axis for empty subplots
+
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+
+    # Show the plot
+    plt.savefig(f"denominators/denominator_{btc}.png")
+
+
+covved = outputs_inter / (res + beta)
+
+for btc in range(25):
+
+    rows = int(np.sqrt(sz))
+    fil = covved[btc][:sz,::]
+
+    # Create a figure and axis object using Matplotlib
+    fig, axes = plt.subplots(rows, rows, figsize=(4*rows, 4*rows))
+
+    # Flatten the axes array to make it easier to iterate over
+    axes = axes.flatten()
+
+    print("Plotting norm results")
+
+    # Loop through each subplot and plot the heatmap
+    for i, ax in tqdm.tqdm(enumerate(axes)):
+        if i < rows * rows:
+            sns.heatmap(fil[i].detach().to("cpu"), ax = ax, square = True)
+        else:
+            ax.axis('off')  # Turn off axis for empty subplots
+
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+
+    # Show the plot
+    plt.savefig(f"normed/normed{btc}.png")
