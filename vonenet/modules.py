@@ -292,17 +292,17 @@ class DNBlockv2(nn.Module):
         
         self.norm_mults = nn.Parameter(torch.tensor(self.norm_mults), requires_grad=requires_grad)
         
-        self.beta = nn.Parameter(torch.tensor(self.beta), requires_grad=requires_grad)
+        self.beta = nn.Parameter(torch.tensor(self.beta), requires_grad=False)
 
         self.kernel = cov_matrix
 
         print("Cov matrix passed to DNBlock")
     
-    def denominator(self,x):
+    def denominator(self,x, maxi = 10):
 
         inter = x.permute(0,3,2,1)
 
-        norm_mults = self.norm_smoother(self.norm_mults)
+        norm_mults = self.norm_smoother(self.norm_mults / maxi)
 
         result = torch.einsum('bxyc,cd->bxyc', inter, norm_mults)
 
