@@ -337,11 +337,9 @@ class GaussianDNBlock(nn.Module):
 
         # 512^2 kernels. scale, two means, two variances, rotation
         # = 6 parameters per kernel
-        params = torch.rand(self.bank_size, self.bank_size, 6)
+        self.params = torch.rand(self.bank_size, self.bank_size, 6)
 
         self.beta = nn.Parameter(torch.tensor(self.bias), requires_grad = True)
-
-        self.kernel = nn.Parameter(params, requires_grad = True)
 
         self.computeCoefficients()
         # enable autograd to accumulate across params
@@ -361,7 +359,7 @@ class GaussianDNBlock(nn.Module):
             for j in range(self.bank_size):
                 weights[i][j] = self.kernel(*self.params[i][j], in_size=self.ksize)
 
-        self.weights = weights
+        self.kernel = weights
 
     
     def denominator(self,x):
