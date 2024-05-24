@@ -328,7 +328,7 @@ class GaussianDNBlock(nn.Module):
         self.bank_size = channels
         self.kernel = gaussianKernel
 
-        self.bias = nn.Parameter(torch.tensor(beta), requires_grad=True)
+        self.bias = nn.Parameter(torch.tensor(beta), requires_grad=True).to(device)
 
         # self.ksize = ksize
 
