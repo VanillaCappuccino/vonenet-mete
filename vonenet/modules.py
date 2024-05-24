@@ -44,7 +44,7 @@ class GFB(nn.Module):
         for i in range(self.out_channels):
             self.weight[i, random_channel[i]] = gabor_kernel(frequency=sf[i], sigma_x=sigx[i], sigma_y=sigy[i],
                                                              theta=theta[i], offset=phase[i], ks=self.kernel_size[0])
-        self.weight = nn.Parameter(self.weight, requires_grad=False)
+        self.weight = nn.Parameter(self.weight, requires_grad=True)
 
 
 class VOneBlock(nn.Module):
