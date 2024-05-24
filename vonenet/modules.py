@@ -342,6 +342,8 @@ class GaussianDNBlock(nn.Module):
         self.beta = nn.Parameter(torch.tensor(self.bias), requires_grad = True)
 
         self.params = nn.Parameter(params, requires_grad = True)
+
+        self.computeCoefficients()
         # enable autograd to accumulate across params
 
 
@@ -368,7 +370,7 @@ class GaussianDNBlock(nn.Module):
         # in the same fashion that the denominator sum is described
         # in the original paper
 
-        self.computeCoefficients() # ???
+        # self.computeCoefficients() # ???
         # re-computes the kernels accn. to current state of implicit
         # trainable parameters
 
