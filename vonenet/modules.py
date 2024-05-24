@@ -344,9 +344,9 @@ class GaussianDNBlock(nn.Module):
         # 512^2 kernels. scale, two means, two variances, rotation
         # = 6 parameters per kernel
 
-        self.bias = nn.Parameter(self.bias, requires_grad=True)
+        self.bias = nn.Parameter(self.bias, requires_grad=True).to(device)
         
-        self.params = nn.Parameter(self.params, requires_grad=True)
+        self.params = nn.Parameter(self.params, requires_grad=True).to(device)
 
         self.computeCoefficients()
         # enable autograd to accumulate across params
@@ -633,7 +633,7 @@ class VOneBlockDN(VOneBlock):
                  simple_channels, complex_channels, ksize, stride, input_size)
 
         if paper_implementation:
-            
+
             self.dn = GaussianDNBlock(channels=simple_channels+complex_channels, in_size = input_size, stride=stride)
             
             self.hidden_beta = self.dn.bias

@@ -311,9 +311,9 @@ def train(save_train_epochs=.2,  # how often save output during training
                         trainer.lr.step(results[validator.name]['loss'])
                     trainer.model.train()
 
-                    if FLAGS.paper_implementation:
-                        trainer.model[0].hidden_beta.detach()
-                        trainer.model[0].hidden_params.detach()
+                    # if FLAGS.paper_implementation:
+                    #     trainer.model[0].hidden_beta.detach()
+                    #     trainer.model[0].hidden_params.detach()
 
                     print('LR: ', trainer.optimizer.param_groups[0]["lr"])
 
