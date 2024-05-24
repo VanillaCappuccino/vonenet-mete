@@ -417,7 +417,7 @@ class ImageNetTrain(object):
             self.lr.step(epoch=frac_epoch)
         target = target.to(device)
 
-        inp = inp.to(device)
+        # inp = inp.to(device)
 
         output = self.model(inp)
 
@@ -472,7 +472,7 @@ class ImageNetVal(object):
         with torch.no_grad():
             for (inp, target) in tqdm.tqdm(self.data_loader, desc=self.name):
                 
-                inp = inp.to(device)
+                # inp = inp.to(device)
                 target = target.to(device)
                 output = self.model(inp)
 
