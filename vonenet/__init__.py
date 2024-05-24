@@ -168,7 +168,7 @@ def get_dn_model(model_arch='resnet18', pretrained=True, map_location='cpu', **k
         model = nn.DataParallel(model)
     else:
         model = globals()[f'VOneNetDN'](model_arch=model_arch, **kwargs)
-        model = nn.DataParallel(model)
+        # model = nn.DataParallel(model)
 
     model.to(map_location)
     return model
