@@ -28,9 +28,9 @@ image_size = 64
 sf_min = 0.5
 sf_max = 11.2
 
-images = True
-gabors = True
-cov_matrix_rfs = True
+images = False
+gabors = False
+cov_matrix_rfs = False
 denominators = True
 normed = True
 
@@ -201,7 +201,7 @@ res = div.T.reshape(outputs_inter.shape)
 sz = res.shape[1]
 
 
-for btc in tqdm.tqdm(range(25)):
+for btc in tqdm.tqdm(range(16)):
 
     rows = int(np.sqrt(sz))
     fil = res[btc][:sz,::]
