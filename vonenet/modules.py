@@ -358,6 +358,8 @@ class GaussianDNBlock(nn.Module):
 
         print(weights.shape, self.in_size)
 
+        raise(ValueError)
+
         for i in range(self.bank_size):
             for j in range(self.bank_size):
                 weights[i][j] = self.kernel(*self.params[i][j], in_size=self.in_size)
