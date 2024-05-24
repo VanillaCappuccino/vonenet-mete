@@ -8,13 +8,13 @@ from numba import jit
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2
 
-# if torch.cuda.is_available():
-#     device = "cuda"
-# elif torch.backends.mps.is_built():
-#     device = "mps"
-#     mps = True
-# else:
-#     device = "cpu"
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_built():
+    device = "mps"
+    mps = True
+else:
+    device = "cpu"
 
 
 class Identity(nn.Module):
@@ -348,9 +348,9 @@ class GaussianDNBlock(nn.Module):
         # 512^2 kernels. scale, two means, two variances, rotation
         # = 6 parameters per kernel
 
-        self.bias = nn.Parameter(self.bias, requires_grad=True)
+        self.bias = nn.Parameter(self.bias, requires_grad=True).to(device)
         
-        self.params = nn.Parameter(self.params, requires_grad=True)
+        self.params = nn.Parameter(self.params, requires_grad=True).to(device)
 
         self.computeCoefficients()
         # enable autograd to accumulate across params
@@ -377,7 +377,6 @@ class GaussianDNBlock(nn.Module):
 
         print(x.device, self.kernel.device)
 
-        raise(ValueError)
 
         result = torch.einsum('abcd,bxcd->abcd', x, self.kernel)
 
