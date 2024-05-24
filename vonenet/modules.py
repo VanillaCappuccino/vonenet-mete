@@ -8,13 +8,13 @@ from numba import jit
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2
 
-if torch.cuda.is_available():
-    device = "cuda"
-elif torch.backends.mps.is_built():
-    device = "mps"
-    mps = True
-else:
-    device = "cpu"
+# if torch.cuda.is_available():
+#     device = "cuda"
+# elif torch.backends.mps.is_built():
+#     device = "mps"
+#     mps = True
+# else:
+#     device = "cpu"
 
 
 class Identity(nn.Module):
@@ -354,11 +354,11 @@ class GaussianDNBlock(nn.Module):
         # enable autograd to accumulate across params
 
 
-    def computeCoefficients(self, device: torch.device = torch.device(device)):
+    def computeCoefficients(self):
 
         # NEEDS TO HAPPEN ON CPU!!!
 
-        weights = torch.zeros(self.bank_size, self.bank_size, self.in_size, self.in_size).to(device)
+        weights = torch.zeros(self.bank_size, self.bank_size, self.in_size, self.in_size)
 
         # x = torch.linspace(-1, 1, self.in_size, device="cpu")
         # params = self.params.to("cpu")
