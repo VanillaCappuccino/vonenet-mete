@@ -420,7 +420,7 @@ else:
     prt = args.perturbation
 
 records = []
-contents = [{"Model Name": model_name+FLAGS.identifier, "RunID": date_time, "Perturbation": prt, "mFR": "{:.5f}".format(mfr), "mT5D": "{:.5f}".format(mt5), "Zipf": "{:.5f}".format(zipf)}]
+contents = [{"Model Name": model_name+args.identifier, "RunID": date_time, "Perturbation": prt, "mFR": "{:.5f}".format(mfr), "mT5D": "{:.5f}".format(mt5), "Zipf": "{:.5f}".format(zipf)}]
 
 try:
     results_old = pickle.load(open(os.path.join("", 'results.pkl'), 'rb'))
