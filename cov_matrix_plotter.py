@@ -103,12 +103,13 @@ def data():
         ]))
     data_loader = torch.utils.data.DataLoader(dataset,
                                                 batch_size=128,
-                                                shuffle=True,
+                                                shuffle=False,
                                                 num_workers=2,
                                                 pin_memory=True)
 
     return data_loader
 
+torch.random.seed(0)
 train_data = data()
 
 for step, dt in enumerate(train_data):
@@ -233,7 +234,7 @@ if cov_matrix_rfs:
 if denominators:
     if ckpt:
 
-        res = voneblockdn[2].denominator(outputs_inter)
+        res = voneblockdn.dn.denominator(outputs_inter)
 
     else:
 
