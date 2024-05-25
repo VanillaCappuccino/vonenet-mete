@@ -67,6 +67,9 @@ parser.add_argument('--rand_param', choices=[True, False], default=False, type=b
 parser.add_argument('--k_exc', default=25, type=float,
                     help='')
 
+parser.add_argument('--cov_path', type = str,
+                    help='path to folder that contains cov matrix and filters')
+
 args = parser.parse_args()
 print(args)
 
