@@ -173,6 +173,130 @@ def get_dn_model(model_arch='resnet18', pretrained=True, map_location='cpu', **k
     model.to(map_location)
     return model
 
+def get_dn_model(model_arch='resnet18', pretrained=True, map_location='cpu', **kwargs):
+    """
+    Returns a VOneNetDN model.
+    Select pretrained=True for returning one of the 3 pretrained models.
+    model_arch: string with identifier to choose the architecture of the back-end (resnet50, cornets, alexnet)
+    """
+
+    if pretrained and model_arch:
+
+        if model_arch == "resnet18":
+
+            rn18 = torchvision.models.resnet18(weights="IMAGENET1K_V1")
+            torch.save(rn18.state_dict(), 'rn18.pth')
+            ckpt_data = torch.load('rn18.pth', map_location=map_location)
+
+        else:
+
+            url = f'https://vonenet-models.s3.us-east-2.amazonaws.com/{FILE_WEIGHTS[model_arch.lower()]}'
+            home_dir = os.environ['HOME']
+            vonenet_dir = os.path.join(home_dir, '.vonenet')
+            weightsdir_path = os.path.join(vonenet_dir, FILE_WEIGHTS[model_arch.lower()])
+            if not os.path.exists(vonenet_dir):
+                os.makedirs(vonenet_dir)
+            if not os.path.exists(weightsdir_path):
+                print('Downloading model weights to ', weightsdir_path)
+                r = requests.get(url, allow_redirects=True)
+                open(weightsdir_path, 'wb').write(r.content)
+
+            ckpt_data = torch.load(weightsdir_path, map_location=map_location)
+
+        stride = ckpt_data['flags']['stride']
+        simple_channels = ckpt_data['flags']['simple_channels']
+        complex_channels = ckpt_data['flags']['complex_channels']
+        k_exc = ckpt_data['flags']['k_exc']
+
+        noise_mode = ckpt_data['flags']['noise_mode']
+        noise_scale = ckpt_data['flags']['noise_scale']
+        noise_level = ckpt_data['flags']['noise_level']
+
+        model_id = ckpt_data['flags']['arch'].replace('_','').lower()
+
+        model = globals()[f'VOneNetDN'](model_arch=model_id, stride=stride, k_exc=k_exc,
+                                      simple_channels=simple_channels, complex_channels=complex_channels,
+                                      noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level)
+
+        if model_arch.lower() == 'resnet50_at':
+            ckpt_data['state_dict'].pop('vone_block.div_u.weight')
+            ckpt_data['state_dict'].pop('vone_block.div_t.weight')
+            model.load_state_dict(ckpt_data['state_dict'])
+        else:
+            model = Wrapper(model)
+            model.load_state_dict(ckpt_data['state_dict'])
+            model = model.module
+
+        model = nn.DataParallel(model)
+    else:
+        model = globals()[f'VOneNetDN'](model_arch=model_arch, **kwargs)
+        model = nn.DataParallel(model)
+
+    model.to(map_location)
+    return model
+
+def get_dn_model_test(model_arch='resnet18', pretrained=True, map_location='cpu', **kwargs):
+    """
+    Returns a VOneNetDN model.
+    Select pretrained=True for returning one of the 3 pretrained models.
+    model_arch: string with identifier to choose the architecture of the back-end (resnet50, cornets, alexnet)
+    """
+
+    if pretrained and model_arch:
+
+        if model_arch == "resnet18":
+
+            rn18 = torchvision.models.resnet18(weights="IMAGENET1K_V1")
+            torch.save(rn18.state_dict(), 'rn18.pth')
+            ckpt_data = torch.load('rn18.pth', map_location=map_location)
+
+        else:
+
+            url = f'https://vonenet-models.s3.us-east-2.amazonaws.com/{FILE_WEIGHTS[model_arch.lower()]}'
+            home_dir = os.environ['HOME']
+            vonenet_dir = os.path.join(home_dir, '.vonenet')
+            weightsdir_path = os.path.join(vonenet_dir, FILE_WEIGHTS[model_arch.lower()])
+            if not os.path.exists(vonenet_dir):
+                os.makedirs(vonenet_dir)
+            if not os.path.exists(weightsdir_path):
+                print('Downloading model weights to ', weightsdir_path)
+                r = requests.get(url, allow_redirects=True)
+                open(weightsdir_path, 'wb').write(r.content)
+
+            ckpt_data = torch.load(weightsdir_path, map_location=map_location)
+
+        stride = ckpt_data['flags']['stride']
+        simple_channels = ckpt_data['flags']['simple_channels']
+        complex_channels = ckpt_data['flags']['complex_channels']
+        k_exc = ckpt_data['flags']['k_exc']
+
+        noise_mode = ckpt_data['flags']['noise_mode']
+        noise_scale = ckpt_data['flags']['noise_scale']
+        noise_level = ckpt_data['flags']['noise_level']
+
+        model_id = ckpt_data['flags']['arch'].replace('_','').lower()
+
+        model = globals()[f'VOneNetDN'](model_arch=model_id, stride=stride, k_exc=k_exc,
+                                      simple_channels=simple_channels, complex_channels=complex_channels,
+                                      noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level)
+
+        if model_arch.lower() == 'resnet50_at':
+            ckpt_data['state_dict'].pop('vone_block.div_u.weight')
+            ckpt_data['state_dict'].pop('vone_block.div_t.weight')
+            model.load_state_dict(ckpt_data['state_dict'])
+        else:
+            model = Wrapper(model)
+            model.load_state_dict(ckpt_data['state_dict'])
+            model = model.module
+
+        model = nn.DataParallel(model)
+    else:
+        model = globals()[f'VOneNetDN'](model_arch=model_arch, **kwargs)
+        # model = nn.DataParallel(model)
+
+    model.to(map_location)
+    return model
+
 
 def get_model_test(ckpt_data, model_arch='resnet18', map_location='cpu', use_TIN = True):
     """
@@ -211,40 +335,40 @@ def get_model_test(ckpt_data, model_arch='resnet18', map_location='cpu', use_TIN
     model.to(map_location)
     return model
 
-def get_dn_model_test(ckpt_data, model_arch='resnet18', map_location = "cpu"):
-    """
-    Returns a VOneNetDN model.
-    Select pretrained=True for returning one of the 3 pretrained models.
-    model_arch: string with identifier to choose the architecture of the back-end (resnet50, cornets, alexnet)
-    """
+# def get_dn_model_test(ckpt_data, model_arch='resnet18', map_location = "cpu"):
+#     """
+#     Returns a VOneNetDN model.
+#     Select pretrained=True for returning one of the 3 pretrained models.
+#     model_arch: string with identifier to choose the architecture of the back-end (resnet50, cornets, alexnet)
+#     """
 
-    stride = ckpt_data['flags']['stride']
-    simple_channels = ckpt_data['flags']['simple_channels']
-    complex_channels = ckpt_data['flags']['complex_channels']
-    k_exc = ckpt_data['flags']['k_exc']
+#     stride = ckpt_data['flags']['stride']
+#     simple_channels = ckpt_data['flags']['simple_channels']
+#     complex_channels = ckpt_data['flags']['complex_channels']
+#     k_exc = ckpt_data['flags']['k_exc']
 
-    noise_mode = ckpt_data['flags']['noise_mode']
-    noise_scale = ckpt_data['flags']['noise_scale']
-    noise_level = ckpt_data['flags']['noise_level']
-    ksize = ckpt_data["flags"]["ksize"]
+#     noise_mode = ckpt_data['flags']['noise_mode']
+#     noise_scale = ckpt_data['flags']['noise_scale']
+#     noise_level = ckpt_data['flags']['noise_level']
+#     ksize = ckpt_data["flags"]["ksize"]
 
-    model_id = ckpt_data['flags']['model_arch'].replace('_','').lower()
+#     model_id = ckpt_data['flags']['model_arch'].replace('_','').lower()
 
-    model = globals()[f'VOneNetDN'](model_arch=model_id, stride=stride, k_exc=k_exc,
-                                    simple_channels=simple_channels, complex_channels=complex_channels,
-                                    noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
-                                    ksize = ksize)
+#     model = globals()[f'VOneNetDN'](model_arch=model_id, stride=stride, k_exc=k_exc,
+#                                     simple_channels=simple_channels, complex_channels=complex_channels,
+#                                     noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level,
+#                                     ksize = ksize)
 
-    if model_arch.lower() == 'resnet50_at':
-        ckpt_data['state_dict'].pop('vone_block.div_u.weight')
-        ckpt_data['state_dict'].pop('vone_block.div_t.weight')
-        model.load_state_dict(ckpt_data['state_dict'])
-    else:
-        model = Wrapper(model)
-        model.load_state_dict(ckpt_data['state_dict'])
-        model = model.module
+#     if model_arch.lower() == 'resnet50_at':
+#         ckpt_data['state_dict'].pop('vone_block.div_u.weight')
+#         ckpt_data['state_dict'].pop('vone_block.div_t.weight')
+#         model.load_state_dict(ckpt_data['state_dict'])
+#     else:
+#         model = Wrapper(model)
+#         model.load_state_dict(ckpt_data['state_dict'])
+#         model = model.module
 
-    model = nn.DataParallel(model)
+#     model = nn.DataParallel(model)
 
-    model.to(map_location)
-    return model
+#     model.to(map_location)
+#     return model

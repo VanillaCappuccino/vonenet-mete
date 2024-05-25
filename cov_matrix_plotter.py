@@ -13,7 +13,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from vonenet import get_dn_model
+from vonenet import get_dn_model_test
 
 batch_size = 128
 model_arch = "resnet18"
@@ -140,8 +140,8 @@ if images:
 
 # Generate intermediate outputs
 
-vondn = get_dn_model(pretrained = False, simple_channels=simple_channels, gabor_seed=0, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees,
-                  filters_r = filters_r, filters_c = filters_c, cov_matrix = cov_matrix, trainable=FLAGS.trainable_vonenetdn).to(device)
+vondn = get_dn_model_test(map_location=device, pretrained = False, simple_channels=simple_channels, gabor_seed=0, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees,
+                  filters_r = filters_r, filters_c = filters_c, cov_matrix = cov_matrix, trainable=FLAGS.trainable_vonenetdn)
 
 if use_checkpoint:
     print("Using checkpoint ", FLAGS.ckpt)
