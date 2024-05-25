@@ -367,7 +367,11 @@ with torch.no_grad():
         num_vids = data.size(0)
         data = data.view(-1,3,dim,dim).cuda()
 
+        print(data.shape)
+
         output = net(data)
+
+        print(output.shape)
 
         for vid in output.view(num_vids, -1, 1000):
             predictions.append(vid.argmax(1).to('cpu').numpy())
