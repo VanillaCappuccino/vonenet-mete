@@ -83,6 +83,7 @@ use_checkpoint = False
 if ckpt != "":
     checkpoint = torch.load(ckpt)
     print("Loaded from: ", ckpt)
+    print(checkpoint["flags"])
     use_checkpoint = True
 
 else:
