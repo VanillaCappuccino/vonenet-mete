@@ -48,7 +48,7 @@ parser.add_argument("--images_edge", type = int, default = 1)
 
 parser.add_argument("--images",  action="store_true", help = "Plot images.")
 parser.add_argument("--gabors",  action="store_true", help = "PLot Gabors.")
-parser.add_argument("--cov_matrix_rfs",  action="store_true", help = "Plot rfs.")
+parser.add_argument("--rfs",  action="store_true", help = "Plot rfs.")
 parser.add_argument("--denominators",  action="store_true", help = "Plot denominators.")
 parser.add_argument("--normed",  action="store_true", help = "Plot norm outputs.")
 

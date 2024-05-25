@@ -1,2 +1,2 @@
 #!/bin/bash
-python imagenet-c-eval.py -m resnet18 --identifier vonenetdn --ngpu 1 --vonenetdn_checkpoint checkpoints/vondn-r1/epoch_60.pth.tar --data_dir /home/mete/repos/robustness/ImageNet-C/datasets/Tiny-ImageNet-C
+python imagenet-c-eval.py -m resnet18 --identifier vonenetdn --ngpu 1 --vonenetdn_checkpoint checkpoints/vonenetdn-cov-variable-l2/latest_epoch.pth.tar --data_dir /home/mete/repos/robustness/ImageNet-C/datasets/Tiny-ImageNet-C
