@@ -55,6 +55,8 @@ parser.add_argument("--normed",  action="store_true", help = "Plot norm outputs.
 
 FLAGS, FIRE_FLAGS = parser.parse_known_args()
 
+print(FLAGS)
+
 images = FLAGS.images
 gabors = FLAGS.gabors
 cov_matrix_rfs = FLAGS.rfs
@@ -79,6 +81,7 @@ use_checkpoint = False
 
 if ckpt != "":
     checkpoint = torch.load(ckpt).to(device)
+    print("Loaded from: ", ckpt)
     use_checkpoint = True
 
 else:
