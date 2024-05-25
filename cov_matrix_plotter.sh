@@ -1,1 +1,1 @@
-python cov_matrix_plotter.py --cov_path 32x32x512x2525xl2norm
+python cov_matrix_plotter.py --cov_path 32x32x512x2525xl2norm --denominators --normed

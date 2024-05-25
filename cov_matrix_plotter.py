@@ -28,12 +28,6 @@ image_size = 64
 sf_min = 0.5
 sf_max = 11.2
 
-images = False
-gabors = False
-cov_matrix_rfs = False
-denominators = True
-normed = True
-
 if torch.cuda.is_available():
     device = "cuda"
 elif torch.backends.mps.is_built():
@@ -47,15 +41,50 @@ parser.add_argument('--cov_path', type = str,
                     help='path to folder that contains cov matrix and filters')
 parser.add_argument('-o', '--output_path', default=None,
                     help='path for storing ')
+parser.add_argument("--ckpt", type = str, default="", help = "Ckpt to load from.")
+parser.add_argument("--trainable_vonenetdn",  action="store_true", help = "Whether to train divisive norm scalars.")
+parser.add_argument("--plots_edge", type = int, default = 1)
+parser.add_argument("--images_edge", type = int, default = 1)
+
+parser.add_argument("--images",  action="store_true", help = "Plot images.")
+parser.add_argument("--gabors",  action="store_true", help = "PLot Gabors.")
+parser.add_argument("--cov_matrix_rfs",  action="store_true", help = "Plot rfs.")
+parser.add_argument("--denominators",  action="store_true", help = "Plot denominators.")
+parser.add_argument("--normed",  action="store_true", help = "Plot norm outputs.")
+
 
 FLAGS, FIRE_FLAGS = parser.parse_known_args()
 
+images = FLAGS.images
+gabors = FLAGS.gabors
+cov_matrix_rfs = FLAGS.rfs
+denominators = FLAGS.denominators
+normed = FLAGS.normed
+
+
+plots_edge = FLAGS.plots_edge
+plots_count = plots_edge ** 2
+
+images_edge = FLAGS.images_edge
+images_count = images_edge ** 2
+
 
 output_path = FLAGS.cov_path
+ckpt = FLAGS.ckpt
 
-cov_matrix = torch.load(output_path+"/cov_matrix.pt").to(device)
-filters_r = torch.load(output_path+"/real_filters.pt").to(device)
-filters_c = torch.load(output_path+"/imaginary_filters.pt").to(device)
+cov_matrix = None
+filters_r = None
+filters_c = None
+use_checkpoint = False
+
+if ckpt != "":
+    checkpoint = torch.load(ckpt).to(device)
+    use_checkpoint = True
+
+else:
+    cov_matrix = torch.load(output_path+"/cov_matrix.pt").to(device)
+    filters_r = torch.load(output_path+"/real_filters.pt").to(device)
+    filters_c = torch.load(output_path+"/imaginary_filters.pt").to(device)
 
 def data():
     dataset = torchvision.datasets.ImageFolder(
@@ -85,7 +114,7 @@ for step, dt in enumerate(train_data):
 
 if images:
     # Create a figure and axis object using Matplotlib
-    cnt = 25
+    cnt = images_count
     rows = int(np.sqrt(cnt))
 
     fig, axes = plt.subplots(rows, rows, figsize = (2*rows,2*rows))
@@ -108,8 +137,11 @@ if images:
 # Generate intermediate outputs
 
 vondn = VOneNetDN(simple_channels=simple_channels, gabor_seed=0, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees,
-                  filters_r = filters_r, filters_c = filters_c, cov_matrix = cov_matrix).to(device)
+                  filters_r = filters_r, filters_c = filters_c, cov_matrix = cov_matrix, trainable=FLAGS.trainable_vonenetdn).to(device)
 
+if use_checkpoint:
+    print("Using checkpoint ", FLAGS.ckpt)
+    vondn.load_state_dict(checkpoint["flags"]["state_dict"])
 
 voneblockdn = vondn[0]
 
@@ -119,7 +151,7 @@ if gabors:
     sz = outputs_inter.shape[1]
     btc = 0 # index of img in batch
 
-    for btc in tqdm.tqdm(range(16)):
+    for btc in tqdm.tqdm(range(images_count)):
         rows = int(np.sqrt(sz))
         fil = outputs_inter[btc][:sz,::]
         print(fil.shape)
@@ -185,23 +217,30 @@ if cov_matrix_rfs:
         plt.savefig(f"plots/cov_matrix_rfs/{ind}.png")
 
 
-beta = nn.Parameter(torch.tensor(1.0), requires_grad=True).to(device)
-cc = simple_channels+complex_channels
-cxc = torch.tensor(torch.rand(cc, cc)) / 0.5 / 1e4
-norm_mults = nn.Parameter(cxc, requires_grad=True).to(device)
 
-inter = outputs_inter.permute(0,3,2,1)
-result = torch.einsum('bxyc,cd->bxyc', inter, norm_mults)
-result = result.permute(0, 3, 1, 2)
+if ckpt:
 
-trial = result.reshape(-1, np.prod(list(result.shape[1:])))
-div = cov_matrix@trial.T
-res = div.T.reshape(outputs_inter.shape)
+    res = voneblockdn[2].denominator(outputs_inter)
+
+else:
+
+    beta = nn.Parameter(torch.tensor(1.0), requires_grad=True).to(device)
+    cc = simple_channels+complex_channels
+    cxc = torch.tensor(torch.rand(cc, cc)) / 0.5 / 1e4
+    norm_mults = nn.Parameter(cxc, requires_grad=True).to(device)
+
+    inter = outputs_inter.permute(0,3,2,1)
+    result = torch.einsum('bxyc,cd->bxyc', inter, norm_mults)
+    result = result.permute(0, 3, 1, 2)
+
+    trial = result.reshape(-1, np.prod(list(result.shape[1:])))
+    div = cov_matrix@trial.T
+    res = div.T.reshape(outputs_inter.shape)
 
 sz = res.shape[1]
 
 
-for btc in tqdm.tqdm(range(16)):
+for btc in tqdm.tqdm(range(plots_count)):
 
     rows = int(np.sqrt(sz))
     fil = res[btc][:sz,::]
@@ -227,10 +266,12 @@ for btc in tqdm.tqdm(range(16)):
     # Show the plot
     plt.savefig(f"plots/denominators/denominator_{btc}.png")
 
+if ckpt:
+    covved = voneblockdn.forward(first_sample[0].to(device))
+else:
+    covved = outputs_inter / (res + beta)
 
-covved = outputs_inter / (res + beta)
-
-for btc in tqdm.tqdm(range(16)):
+for btc in tqdm.tqdm(range(plots_count)):
 
     rows = int(np.sqrt(sz))
     fil = covved[btc][:sz,::]
