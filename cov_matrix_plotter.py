@@ -155,7 +155,10 @@ def remove_data_parallel(old_state_dict):
 if use_checkpoint:
     print("Using checkpoint ", FLAGS.ckpt)
     ckpts = remove_data_parallel(checkpoint["state_dict"])
+    print(ckpts.keys())
     vondn.load_state_dict(ckpts)
+
+    cov_matrix = vondn.voneblockdn.dn.cov_matrix
 
 voneblockdn = vondn[0]
 
