@@ -13,7 +13,7 @@ import pickle
 # from resnext_101_32x4d import resnext_101_32x4d
 # from resnext_101_64x4d import resnext_101_64x4d
 from scipy.stats import rankdata
-from collections import OrderedDict()
+from collections import OrderedDict
 
 import csv
 import os, sys
