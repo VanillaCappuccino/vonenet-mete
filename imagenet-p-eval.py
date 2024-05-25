@@ -183,7 +183,7 @@ elif args.vonenet_checkpoint != "":
     mdl = torch.load(args.vonenet_checkpoint)
     print("VOneNet loaded from: ", args.vonenet_checkpoint)
 
-    net = get_model_test()
+    net = get_model_test(mdl)
 
     ckpts = remove_data_parallel(mdl["state_dict"])
 
