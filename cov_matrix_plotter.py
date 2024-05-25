@@ -37,6 +37,7 @@ else:
     device = "cpu"
 
 parser = argparse.ArgumentParser(description='Covariance plotting')
+
 parser.add_argument('--cov_path', type = str,
                     help='path to folder that contains cov matrix and filters')
 parser.add_argument('-o', '--output_path', default=None,
@@ -220,82 +221,85 @@ if cov_matrix_rfs:
         plt.savefig(f"plots/cov_matrix_rfs/{ind}.png")
 
 
+if denominators:
+    if ckpt:
 
-if ckpt:
+        res = voneblockdn[2].denominator(outputs_inter)
 
-    res = voneblockdn[2].denominator(outputs_inter)
+    else:
 
-else:
+        beta = nn.Parameter(torch.tensor(1.0), requires_grad=True).to(device)
+        cc = simple_channels+complex_channels
+        cxc = torch.tensor(torch.rand(cc, cc)) / 0.5 / 1e4
+        norm_mults = nn.Parameter(cxc, requires_grad=True).to(device)
 
-    beta = nn.Parameter(torch.tensor(1.0), requires_grad=True).to(device)
-    cc = simple_channels+complex_channels
-    cxc = torch.tensor(torch.rand(cc, cc)) / 0.5 / 1e4
-    norm_mults = nn.Parameter(cxc, requires_grad=True).to(device)
+        inter = outputs_inter.permute(0,3,2,1)
+        result = torch.einsum('bxyc,cd->bxyc', inter, norm_mults)
+        result = result.permute(0, 3, 1, 2)
 
-    inter = outputs_inter.permute(0,3,2,1)
-    result = torch.einsum('bxyc,cd->bxyc', inter, norm_mults)
-    result = result.permute(0, 3, 1, 2)
+        trial = result.reshape(-1, np.prod(list(result.shape[1:])))
+        div = cov_matrix@trial.T
+        res = div.T.reshape(outputs_inter.shape)
 
-    trial = result.reshape(-1, np.prod(list(result.shape[1:])))
-    div = cov_matrix@trial.T
-    res = div.T.reshape(outputs_inter.shape)
-
-sz = res.shape[1]
+    sz = res.shape[1]
 
 
-for btc in tqdm.tqdm(range(plots_count)):
+    for btc in tqdm.tqdm(range(plots_count)):
 
-    rows = int(np.sqrt(sz))
-    fil = res[btc][:sz,::]
+        rows = int(np.sqrt(sz))
+        fil = res[btc][:sz,::]
 
-    # Create a figure and axis object using Matplotlib
-    fig, axes = plt.subplots(rows, rows, figsize=(4*rows, 4*rows))
+        # Create a figure and axis object using Matplotlib
+        fig, axes = plt.subplots(rows, rows, figsize=(4*rows, 4*rows))
 
-    # Flatten the axes array to make it easier to iterate over
-    axes = axes.flatten()
+        # Flatten the axes array to make it easier to iterate over
+        axes = axes.flatten()
 
-    print("Plotting denominators")
+        print("Plotting denominators")
 
-    # Loop through each subplot and plot the heatmap
-    for i, ax in enumerate(axes):
-        if i < rows * rows:
-            sns.heatmap(fil[i].detach().to("cpu"), ax = ax, square = True)
-        else:
-            ax.axis('off')  # Turn off axis for empty subplots
+        # Loop through each subplot and plot the heatmap
+        for i, ax in enumerate(axes):
+            if i < rows * rows:
+                sns.heatmap(fil[i].detach().to("cpu"), ax = ax, square = True)
+            else:
+                ax.axis('off')  # Turn off axis for empty subplots
 
-    # Adjust layout to prevent overlap
-    plt.tight_layout()
+        # Adjust layout to prevent overlap
+        plt.tight_layout()
 
-    # Show the plot
-    plt.savefig(f"plots/denominators/denominator_{btc}.png")
+        # Show the plot
+        plt.savefig(f"plots/denominators/denominator_{btc}.png")
 
-if ckpt:
-    covved = voneblockdn.forward(first_sample[0].to(device))
-else:
-    covved = outputs_inter / (res + beta)
 
-for btc in tqdm.tqdm(range(plots_count)):
+if normed:
 
-    rows = int(np.sqrt(sz))
-    fil = covved[btc][:sz,::]
+    if ckpt:
+        covved = voneblockdn.forward(first_sample[0].to(device))
+    else:
+        covved = outputs_inter / (res + beta)
 
-    # Create a figure and axis object using Matplotlib
-    fig, axes = plt.subplots(rows, rows, figsize=(4*rows, 4*rows))
+    for btc in tqdm.tqdm(range(plots_count)):
 
-    # Flatten the axes array to make it easier to iterate over
-    axes = axes.flatten()
+        rows = int(np.sqrt(sz))
+        fil = covved[btc][:sz,::]
 
-    print("Plotting norm results")
+        # Create a figure and axis object using Matplotlib
+        fig, axes = plt.subplots(rows, rows, figsize=(4*rows, 4*rows))
 
-    # Loop through each subplot and plot the heatmap
-    for i, ax in enumerate(axes):
-        if i < rows * rows:
-            sns.heatmap(fil[i].detach().to("cpu"), ax = ax, square = True)
-        else:
-            ax.axis('off')  # Turn off axis for empty subplots
+        # Flatten the axes array to make it easier to iterate over
+        axes = axes.flatten()
 
-    # Adjust layout to prevent overlap
-    plt.tight_layout()
+        print("Plotting norm results")
 
-    # Show the plot
-    plt.savefig(f"plots/normed/normed{btc}.png")
+        # Loop through each subplot and plot the heatmap
+        for i, ax in enumerate(axes):
+            if i < rows * rows:
+                sns.heatmap(fil[i].detach().to("cpu"), ax = ax, square = True)
+            else:
+                ax.axis('off')  # Turn off axis for empty subplots
+
+        # Adjust layout to prevent overlap
+        plt.tight_layout()
+
+        # Show the plot
+        plt.savefig(f"plots/normed/normed{btc}.png")
