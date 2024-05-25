@@ -140,7 +140,7 @@ if images:
 
 # Generate intermediate outputs
 
-vondn = get_dn_model(simple_channels=simple_channels, gabor_seed=0, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees,
+vondn = get_dn_model(pretrained = False, simple_channels=simple_channels, gabor_seed=0, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees,
                   filters_r = filters_r, filters_c = filters_c, cov_matrix = cov_matrix, trainable=FLAGS.trainable_vonenetdn).to(device)
 
 if use_checkpoint:
