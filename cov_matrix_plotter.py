@@ -81,7 +81,7 @@ filters_c = None
 use_checkpoint = False
 
 if ckpt != "":
-    checkpoint = torch.load(ckpt).to(device)
+    checkpoint = torch.load(ckpt)
     print("Loaded from: ", ckpt)
     use_checkpoint = True
 
