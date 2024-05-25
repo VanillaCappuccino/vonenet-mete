@@ -16,6 +16,14 @@ from vonenet import get_model_test, barebones_model, get_dn_model_test
 import pickle
 from datetime import datetime
 from tqdm import tqdm
+from collections import OrderedDict
+
+import csv
+import os, sys
+from datetime import datetime
+import requests
+from tqdm import tqdm
+from vonenet import get_model_test, barebones_model, get_dn_model_test
 
 
 parser = argparse.ArgumentParser(description='Evaluates robustness of various nets on ImageNet',
@@ -32,16 +40,60 @@ parser.add_argument('--data_dir', type=str, default="datasets/ImageNet-C", help=
 parser.add_argument("--rn18_checkpoint", type=str, default="", help = "Location of RN18 checkpoint to load state dict from, if a checkpoint is to be used.")
 parser.add_argument("--vonenet_checkpoint", type=str, default="", help = "Location of VOneNet checkpoint to load state dict from, if a checkpoint is to be used.")
 parser.add_argument("--vonenetdn_checkpoint", type=str, default="", help = "Location of VOneNetDN checkpoint to load state dict from, if a checkpoint is to be used.")
-
+parser.add_argument("--trainable_vonenetdn",  action="store_true", help = "Whether to train divisive norm scalars.")
 
 parser.add_argument("--norm", type=str, choices = ["imagenet, vonenet"], default="vonenet", help = "Normalization.")
 
 parser.add_argument("--identifier", type=str, default="")
 
+parser.add_argument('--stride', default=2, type=int,
+                    help='stride for the first convolution (Gabor Filter Bank)')
+parser.add_argument('--ksize', default=25, type=int,
+                    help='kernel size for the first convolution (Gabor Filter Bank)')
+parser.add_argument('--simple_channels', default=32, type=int,
+                    help='number of simple channels in V1 block')
+parser.add_argument('--complex_channels', default=32, type=int,
+                    help='number of complex channels in V1 block')
+parser.add_argument('--gabor_seed', default=0, type=int,
+                    help='seed for gabor initialization')
+parser.add_argument('--sf_corr', default=0.75, type=float,
+                    help='')
+parser.add_argument('--sf_max', default=6, type=float,
+                    help='')
+parser.add_argument('--sf_min', default=0, type=float,
+                    help='')
+parser.add_argument('--rand_param', choices=[True, False], default=False, type=bool,
+                    help='random gabor params')
+parser.add_argument('--k_exc', default=25, type=float,
+                    help='')
+
 args = parser.parse_args()
 print(args)
 
+visual_degrees = args.visual_degrees
+stride = args.stride
+ksize = args.ksize
+k_exc = args.k_exc
+simple_channels = args.simple_channels
+complex_channels = args.complex_channels
+image_size = 64
+
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_built():
+    device = "mps"
+    mps = True
+else:
+    device = "cpu"
+
 # /////////////// Model Setup ///////////////
+
+def remove_data_parallel(old_state_dict):
+    new_state_dict = OrderedDict()
+    for k, v in old_state_dict.items():
+        name = k[7:] # remove `module.`
+        new_state_dict[name] = v
+    return new_state_dict
 
 if args.rn18_checkpoint != "":
     model_type = "resnet18"
@@ -61,13 +113,27 @@ elif args.vonenet_checkpoint != "":
     args.test_bs = 5 # value default for rn18.
 
 elif args.vonenetdn_checkpoint != "":
-    model_type = "vonenetdn"
+
+    cov_path = args.cov_path
+
+    cov_matrix = torch.load(cov_path+"/cov_matrix.pt").to(device)
+    filters_r = torch.load(cov_path+"/real_filters.pt").to(device)
+    filters_c = torch.load(cov_path+"/imaginary_filters.pt").to(device)
+
 
     mdl = torch.load(args.vonenetdn_checkpoint)
+    print("VOneNetDN loaded from: ", args.vonenetdn_checkpoint)
 
-    net = get_dn_model_test(mdl, "resnet18", "cpu")
+    ckpts = remove_data_parallel(mdl["state_dict"])
 
+    net = get_dn_model_test(map_location=device, pretrained = False,
+                                    simple_channels=simple_channels, gabor_seed=0,
+                                    complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=k_exc, ksize=ksize,
+                                    stride = stride, image_size=image_size, visual_degrees=visual_degrees, 
+                                    filters_r = filters_r, filters_c = filters_c, cov_matrix = cov_matrix, trainable=args.trainable_vonenetdn)
     args.test_bs = 5 # value default for rn18.
+
+    net.load_state_dict(ckpts)
 
 elif args.model_name == 'alexnet':
     net = models.AlexNet()
