@@ -289,8 +289,8 @@ print('Data Loaded\n')
 
 # /////////////// Stability Measurements ///////////////
 
-identity = np.asarray(range(1, 1001))
-cum_sum_top5 = np.cumsum(np.asarray([0] + [1] * 5 + [0] * (999 - 5)))
+identity = np.asarray(range(1, 201))
+cum_sum_top5 = np.cumsum(np.asarray([0] + [1] * 5 + [0] * (199 - 5)))
 recip = 1./identity
 
 # def top5_dist(sigma):
