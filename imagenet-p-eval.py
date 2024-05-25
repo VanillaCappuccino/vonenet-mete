@@ -135,6 +135,8 @@ parser.add_argument('--rand_param', choices=[True, False], default=False, type=b
 parser.add_argument('--k_exc', default=25, type=float,
                     help='')
 
+parser.add_argument("--identifier", type = str, default = "")
+
 # Noise layer
 parser.add_argument('--noise_mode', choices=['gaussian', 'neuronal', None],
                     default=None,
@@ -418,7 +420,7 @@ else:
     prt = args.perturbation
 
 records = []
-contents = [{"Model Name": model_name, "RunID": date_time, "Perturbation": prt, "mFR": "{:.5f}".format(mfr), "mT5D": "{:.5f}".format(mt5), "Zipf": "{:.5f}".format(zipf)}]
+contents = [{"Model Name": model_name+FLAGS.identifier, "RunID": date_time, "Perturbation": prt, "mFR": "{:.5f}".format(mfr), "mT5D": "{:.5f}".format(mt5), "Zipf": "{:.5f}".format(zipf)}]
 
 try:
     results_old = pickle.load(open(os.path.join("", 'results.pkl'), 'rb'))
