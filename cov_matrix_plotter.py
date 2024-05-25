@@ -109,7 +109,7 @@ def data():
 
     return data_loader
 
-torch.random.seed(0)
+torch.manual_seed(0)
 train_data = data()
 
 for step, dt in enumerate(train_data):

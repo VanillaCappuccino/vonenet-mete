@@ -13,6 +13,7 @@ import pickle
 # from resnext_101_32x4d import resnext_101_32x4d
 # from resnext_101_64x4d import resnext_101_64x4d
 from scipy.stats import rankdata
+from collections import OrderedDict()
 
 import csv
 import os, sys
@@ -21,7 +22,13 @@ import requests
 from tqdm import tqdm
 from vonenet import get_model_test, barebones_model, get_dn_model_test
 
-
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_built():
+    device = "mps"
+    mps = True
+else:
+    device = "cpu"
 # import envoy
 
 # dataset = "Tiny-ImageNet-P"
@@ -137,10 +144,30 @@ parser.add_argument('--noise_scale', default=1, type=float,
 parser.add_argument('--noise_level', default=1, type=float,
                     help='noise level')
 
+parser.add_argument('--cov_path', type = str,
+                    help='path to folder that contains cov matrix and filters')
+
+parser.add_argument("--trainable_vonenetdn",  action="store_true", help = "Whether to train divisive norm scalars.")
+
 args = parser.parse_args()
 print(args)
 
+visual_degrees = args.visual_degrees
+stride = args.stride
+ksize = args.ksize
+k_exc = args.k_exc
+simple_channels = args.simple_channels
+complex_channels = args.complex_channels
+image_size = 64
+
 # /////////////// Model Setup ///////////////
+
+def remove_data_parallel(old_state_dict):
+    new_state_dict = OrderedDict()
+    for k, v in old_state_dict.items():
+        name = k[7:] # remove `module.`
+        new_state_dict[name] = v
+    return new_state_dict
 
 if args.rn18_checkpoint != "":
     net = barebones_model(model_arch="resnet18", use_TIN = False, imagenet_ckpt=False)
@@ -159,12 +186,26 @@ elif args.vonenet_checkpoint != "":
 
 elif args.vonenetdn_checkpoint != "":
 
+    cov_path = args.cov_path
+
+    cov_matrix = torch.load(cov_path+"/cov_matrix.pt").to(device)
+    filters_r = torch.load(cov_path+"/real_filters.pt").to(device)
+    filters_c = torch.load(cov_path+"/imaginary_filters.pt").to(device)
+
+
     mdl = torch.load(args.vonenetdn_checkpoint)
+    print("VOneNetDN loaded from: ", args.vonenetdn_checkpoint)
 
-    get_model_test(mdl, "resnet18", "cpu")
+    ckpts = remove_data_parallel(mdl["state_dict"])
 
-    net = get_dn_model_test()
+    net = get_dn_model_test(map_location=device, pretrained = False,
+                                    simple_channels=simple_channels, gabor_seed=0,
+                                    complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=k_exc, ksize=ksize,
+                                    stride = stride, image_size=image_size, visual_degrees=visual_degrees, 
+                                    filters_r = filters_r, filters_c = filters_c, cov_matrix = cov_matrix, trainable=args.trainable_vonenetdn)
     args.test_bs = 5 # value default for rn18.
+
+    net.load_state_dict(ckpts)
 
 else:
 
