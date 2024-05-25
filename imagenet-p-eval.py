@@ -179,8 +179,13 @@ if args.rn18_checkpoint != "":
 
 elif args.vonenet_checkpoint != "":
     mdl = torch.load(args.vonenet_checkpoint)
+    print("VOneNet loaded from: ", args.vonenet_checkpoint)
 
     net = get_model_test()
+
+    ckpts = remove_data_parallel(mdl["state_dict"])
+
+    net.load_state_dict(ckpts)
 
     args.test_bs = 5 # value default for rn18.
 
