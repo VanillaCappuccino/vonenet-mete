@@ -152,8 +152,6 @@ if args.rn18_checkpoint != "":
 
 elif args.vonenet_checkpoint != "":
     mdl = torch.load(args.vonenet_checkpoint)
-    
-    get_model_test(mdl, "resnet18", "cpu")
 
     net = get_model_test()
 
