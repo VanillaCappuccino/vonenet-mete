@@ -87,10 +87,9 @@ if ckpt != "":
     print("Loaded from: ", ckpt)
     use_checkpoint = True
 
-else:
-    cov_matrix = torch.load(output_path+"/cov_matrix.pt").to(device)
-    filters_r = torch.load(output_path+"/real_filters.pt").to(device)
-    filters_c = torch.load(output_path+"/imaginary_filters.pt").to(device)
+cov_matrix = torch.load(output_path+"/cov_matrix.pt").to(device)
+filters_r = torch.load(output_path+"/real_filters.pt").to(device)
+filters_c = torch.load(output_path+"/imaginary_filters.pt").to(device)
 
 def data():
     dataset = torchvision.datasets.ImageFolder(
@@ -155,10 +154,7 @@ def remove_data_parallel(old_state_dict):
 if use_checkpoint:
     print("Using checkpoint ", FLAGS.ckpt)
     ckpts = remove_data_parallel(checkpoint["state_dict"])
-    print(ckpts.keys())
     vondn.load_state_dict(ckpts)
-
-    cov_matrix = vondn.voneblockdn.dn.cov_matrix
 
 voneblockdn = vondn[0]
 
