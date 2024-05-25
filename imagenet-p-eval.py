@@ -373,7 +373,7 @@ with torch.no_grad():
 
         print(output.shape)
 
-        for vid in output.view(num_vids, -1, 1000):
+        for vid in output.view(num_vids, -1, 200):
             predictions.append(vid.argmax(1).to('cpu').numpy())
             ranks.append([np.uint16(rankdata(-frame, method='ordinal')) for frame in vid.to('cpu').numpy()])
 
