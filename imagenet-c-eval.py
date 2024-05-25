@@ -66,6 +66,8 @@ parser.add_argument('--rand_param', choices=[True, False], default=False, type=b
                     help='random gabor params')
 parser.add_argument('--k_exc', default=25, type=float,
                     help='')
+parser.add_argument('--visual_degrees', default=2, type=float,
+                    help='Field-of-View of the model in visual degrees')
 
 parser.add_argument('--cov_path', type = str,
                     help='path to folder that contains cov matrix and filters')
