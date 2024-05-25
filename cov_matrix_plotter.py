@@ -8,6 +8,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import cv2
 
+from collections import OrderedDict
+
 import numpy as np
 import torch
 from torch import nn
@@ -143,11 +145,17 @@ if images:
 vondn = get_dn_model_test(map_location=device, pretrained = False, simple_channels=simple_channels, gabor_seed=0, complex_channels=complex_channels, model_arch="resnet18", noise_mode = None, k_exc=25, ksize=25, stride = stride, image_size=image_size, visual_degrees=visual_degrees,
                   filters_r = filters_r, filters_c = filters_c, cov_matrix = cov_matrix, trainable=FLAGS.trainable_vonenetdn)
 
+def remove_data_parallel(old_state_dict):
+    new_state_dict = OrderedDict()
+    for k, v in old_state_dict.items():
+        name = k[7:] # remove `module.`
+        new_state_dict[name] = v
+    return new_state_dict
+
 if use_checkpoint:
     print("Using checkpoint ", FLAGS.ckpt)
-    for key in checkpoint["state_dict"].keys():
-        checkpoint["state_dict"][key[7:]] = checkpoint["state_dict"].pop(key)
-    vondn.load_state_dict(checkpoint["state_dict"])
+    ckpts = remove_data_parallel(checkpoint["state_dict"])
+    vondn.load_state_dict(ckpts)
 
 voneblockdn = vondn[0]
 
