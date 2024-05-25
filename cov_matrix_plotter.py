@@ -145,6 +145,8 @@ vondn = get_dn_model_test(map_location=device, pretrained = False, simple_channe
 
 if use_checkpoint:
     print("Using checkpoint ", FLAGS.ckpt)
+    for key in checkpoint["state_dict"]:
+        key = key[7:]
     vondn.load_state_dict(checkpoint["state_dict"])
 
 voneblockdn = vondn[0]
