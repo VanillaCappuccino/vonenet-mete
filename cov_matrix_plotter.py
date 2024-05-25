@@ -83,7 +83,6 @@ use_checkpoint = False
 if ckpt != "":
     checkpoint = torch.load(ckpt)
     print("Loaded from: ", ckpt)
-    print(checkpoint["flags"])
     use_checkpoint = True
 
 else:
@@ -146,7 +145,7 @@ vondn = VOneNetDN(simple_channels=simple_channels, gabor_seed=0, complex_channel
 
 if use_checkpoint:
     print("Using checkpoint ", FLAGS.ckpt)
-    vondn.load_state_dict(checkpoint["flags"]["state_dict"])
+    vondn.load_state_dict(checkpoint["state_dict"])
 
 voneblockdn = vondn[0]
 
