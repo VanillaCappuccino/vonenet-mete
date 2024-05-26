@@ -119,6 +119,8 @@ elif args.vonenet_checkpoint != "":
 
 elif args.vonenetdn_checkpoint != "":
 
+    model_type = "vonenetdn"
+
     cov_path = args.cov_path
 
     cov_matrix = torch.load(cov_path+"/cov_matrix.pt").to(device)
